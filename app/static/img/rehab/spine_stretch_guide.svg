@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="400" height="300" fill="#f0f8ff" rx="10" ry="10"/>
+  
+  <!-- 脊柱伸展姿势示意图 -->
+  <g transform="translate(200, 150)">
+    <!-- 头部 -->
+    <circle cx="0" cy="-90" r="20" fill="#e1e8ed"/>
+    
+    <!-- 身体 -->
+    <path d="M0 -70 C -10 -40, -20 -10, -10 30 C 0 70, 0 90, 0 110" 
+          stroke="#3498db" stroke-width="6" fill="none" stroke-linecap="round"/>
+    
+    <!-- 双臂 -->
+    <line x1="-10" y1="-50" x2="-60" y2="-30" stroke="#3498db" stroke-width="6" stroke-linecap="round"/>
+    <line x1="-10" y1="-50" x2="-80" y2="-10" stroke="#3498db" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- 双腿 -->
+    <line x1="0" y1="110" x2="-30" y2="150" stroke="#3498db" stroke-width="6" stroke-linecap="round"/>
+    <line x1="0" y1="110" x2="30" y2="150" stroke="#3498db" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- 伸展指示箭头 -->
+    <path d="M10 -20 C 40 -30, 70 -20, 90 0" stroke="#e74c3c" stroke-width="3" fill="none" 
+          stroke-dasharray="5,3" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- 箭头标记定义 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c"/>
+    </marker>
+  </defs>
+  
+  <!-- 文字说明 -->
+  <text x="200" y="260" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" font-weight="bold" fill="#2c3e50">脊柱伸展姿势</text>
+  <text x="200" y="280" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#7f8c8d">保持脊柱挺直，向前弯腰时感受背部拉伸</text>
+</svg> 

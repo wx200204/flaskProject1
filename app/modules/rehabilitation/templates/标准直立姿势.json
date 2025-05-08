@@ -1,0 +1,10 @@
+{
+    "name": "标准直立姿势",
+    "description": "脊柱自然直立，肩膀水平，髋部水平，重心均匀分布",
+    "spine_angles": {
+        "lateral_deviation": 0,
+        "forward_tilt": 10,
+        "shoulder_balance": 0
+    },
+    "tolerance": 10
+}

@@ -1,0 +1,63 @@
+2025-03-14 02:09:17,279 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:18:59,417 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:19:49,136 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:20:38,881 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:28:23,024 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:28:49,567 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:33:07,980 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:35:54,988 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:41:10,031 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:41:16,953 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:43:37,431 - app - INFO - Medical Image Analysis startup
+2025-03-14 02:45:03,237 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:45:08,997 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:47:11,225 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:47:20,076 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:49:58,155 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:50:04,074 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:54:46,411 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:56]
+2025-03-14 02:55:00,208 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 02:56:08,520 ERROR: ·ÖÎö´íÎó: 'ModelManager' object has no attribute 'analyze_image' [in e:\ssjsy\flaskProject1\app\routes.py:121]
+2025-03-14 02:59:05,615 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 02:59:16,237 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 02:59:23,945 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:35:46,436 INFO: Medical Image Analysis startup [in E:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:39:03,005 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:39:07,937 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:40:15,428 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:40:28,076 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:40:33,034 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:43:53,183 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:47:59,740 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:48:04,511 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:50:48,345 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:50:59,391 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:51:14,416 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:54:20,191 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:54:38,248 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:54:59,315 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 15:55:05,485 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:25:55,125 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:26:00,740 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:27:37,103 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:28:02,757 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:28:18,002 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:29:08,551 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:33:28,168 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:33:44,822 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:34:05,894 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:34:59,420 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:35:20,363 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:35:42,943 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:36:17,496 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:36:22,230 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:38:14,181 INFO: Medical Image Analysis startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:39:34,555 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:39:39,291 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:40:41,610 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:41:01,271 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:41:09,152 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:42:10,482 INFO: Medical Image Analysis API startup [in e:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:42:40,077 INFO: Medical Image Analysis API startup [in E:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:42:45,088 INFO: Medical Image Analysis API startup [in E:\ssjsy\flaskProject1\app\__init__.py:54]
+2025-03-14 16:46:36,265 INFO: Medical Image Analysis API startup [in E:\ssjsy\flaskProject1\app\__init__.py:54]

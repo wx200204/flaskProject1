@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="100" cy="100" r="90" fill="#2ecc71"/>
+  
+  <!-- 白色对勾 -->
+  <path d="M60 105 L90 135 L140 75" 
+        stroke="white" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 发光效果 -->
+  <circle cx="100" cy="100" r="70" fill="none" stroke="white" stroke-width="5" opacity="0.3"/>
+  
+  <!-- 文字 -->
+  <text x="100" y="175" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white" font-weight="bold">训练完成</text>
+</svg> 

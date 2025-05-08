@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}体态评估 - 脊柱检测系统{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">全身体态评估</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">上传照片进行体态评估</h3>
+        </div>
+        <div class="card-body">
+            <form id="postureForm" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="frontImage">前视图照片</label>
+                            <input type="file" class="form-control" id="frontImage" name="front" accept="image/*">
+                            <small class="form-text text-muted">请上传正面照片，确保全身入镜</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="backImage">后视图照片</label>
+                            <input type="file" class="form-control" id="backImage" name="back" accept="image/*">
+                            <small class="form-text text-muted">请上传背面照片，确保全身入镜</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="leftImage">左侧视图照片</label>
+                            <input type="file" class="form-control" id="leftImage" name="left" accept="image/*">
+                            <small class="form-text text-muted">请上传左侧照片，确保全身入镜</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="rightImage">右侧视图照片</label>
+                            <input type="file" class="form-control" id="rightImage" name="right" accept="image/*">
+                            <small class="form-text text-muted">请上传右侧照片，确保全身入镜</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">开始分析</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="loadingIndicator" class="text-center my-5 d-none">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="sr-only">分析中...</span>
+        </div>
+        <h4 class="mt-3">正在进行体态分析，请稍候...</h4>
+    </div>
+    
+    <div id="resultContainer" class="d-none">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">体态评估结果</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4>检测到的体态问题：</h4>
+                        <ul id="issuesList" class="list-group mb-4">
+                            <!-- 体态问题列表 -->
+                        </ul>
+                        
+                        <h4>体态评估：</h4>
+                        <p id="severityText" class="lead"></p>
+                        
+                        <h4>改善建议：</h4>
+                        <ul id="recommendationsList" class="list-group mb-4">
+                            <!-- 建议列表 -->
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="originalImagesRadio" name="imageToggle" class="custom-control-input" checked>
+                                <label class="custom-control-label" for="originalImagesRadio">原始照片</label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="analysisImagesRadio" name="imageToggle" class="custom-control-input">
+                                <label class="custom-control-label" for="analysisImagesRadio">分析标记</label>
+                            </div>
+                        </div>
+                        
+                        <div id="originalImagesContainer">
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">前视图</h5>
+                                <img id="frontOriginal" class="img-fluid rounded" src="" alt="前视图">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">后视图</h5>
+                                <img id="backOriginal" class="img-fluid rounded" src="" alt="后视图">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">左侧视图</h5>
+                                <img id="leftOriginal" class="img-fluid rounded" src="" alt="左侧视图">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">右侧视图</h5>
+                                <img id="rightOriginal" class="img-fluid rounded" src="" alt="右侧视图">
+                            </div>
+                        </div>
+                        
+                        <div id="analysisImagesContainer" style="display: none;">
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">前视图分析</h5>
+                                <img id="frontAnalysis" class="img-fluid rounded" src="" alt="前视图分析">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">后视图分析</h5>
+                                <img id="backAnalysis" class="img-fluid rounded" src="" alt="后视图分析">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">左侧视图分析</h5>
+                                <img id="leftAnalysis" class="img-fluid rounded" src="" alt="左侧视图分析">
+                            </div>
+                            <div class="image-box mt-3">
+                                <h5 class="text-center">右侧视图分析</h5>
+                                <img id="rightAnalysis" class="img-fluid rounded" src="" alt="右侧视图分析">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h4>详细测量数据：</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>测量项目</th>
+                                    <th>数值</th>
+                                    <th>参考范围</th>
+                                </tr>
+                            </thead>
+                            <tbody id="measurementsTable">
+                                <!-- 测量数据表格行 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+</script>
+{% endblock %} 

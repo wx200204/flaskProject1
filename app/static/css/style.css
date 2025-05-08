@@ -1,0 +1,120 @@
+/* 全局样式 */
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* 导航栏样式 */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #3a7bd5 !important;
+}
+
+/* 卡片样式 */
+.card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    font-weight: 600;
+    padding: 12px 20px;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 4px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #3a7bd5;
+    border-color: #3a7bd5;
+}
+
+.btn-primary:hover {
+    background-color: #2a6ac5;
+    border-color: #2a6ac5;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* 表单样式 */
+.form-control {
+    border-radius: 4px;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 0.2rem rgba(58, 123, 213, 0.25);
+}
+
+/* 工具提示 */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+/* 加载动画 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #3a7bd5;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.2rem;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+} 

@@ -1,0 +1,360 @@
+{% extends "layout.html" %}
+
+{% block title %}脊柱侧弯分析系统{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h1 class="display-5 mb-3">欢迎使用脊柱侧弯分析系统</h1>
+                    <p class="lead text-muted">AI辅助脊柱侧弯检测、康复训练指导与体态评估的综合平台</p>
+                    <div class="d-flex justify-content-center mt-4">
+                        <a href="#" class="btn btn-lg btn-primary me-3" id="startBtn">立即开始</a>
+                        <a href="{{ url_for('main.user_records') }}" class="btn btn-lg btn-outline-success">我的记录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0"><i class="fas fa-cubes me-2"></i>功能模块</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-x-ray fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="card-title h5">脊柱侧弯检测</h3>
+                                    <p class="card-text small text-muted">上传图像进行Cobb角分析</p>
+                                    <a href="{{ url_for('main.upload') }}" class="btn btn-success mt-2 stretched-link">
+                                        <i class="fas fa-arrow-right me-1"></i>进入检测
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-dumbbell fa-3x text-danger"></i>
+                                    </div>
+                                    <h3 class="card-title h5">脊柱康复指导</h3>
+                                    <p class="card-text small text-muted">实时姿态分析与康复指导</p>
+                                    <a href="{{ url_for('main.rehabilitation') }}" class="btn btn-primary mt-2 stretched-link">
+                                        <i class="fas fa-arrow-right me-1"></i>进入康复
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-user-check fa-3x text-info"></i>
+                                    </div>
+                                    <h3 class="card-title h5">体态评估</h3>
+                                    <p class="card-text small text-muted">全身体态问题评估和建议</p>
+                                    <a href="{{ url_for('posture_eval.posture_index') }}" class="btn btn-info mt-2 stretched-link">
+                                        <i class="fas fa-arrow-right me-1"></i>进入评估
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body text-center p-4">
+                                    <div class="feature-icon mb-3">
+                                        <i class="fas fa-clipboard-list fa-3x text-secondary"></i>
+                                    </div>
+                                    <h3 class="card-title h5">分析报告</h3>
+                                    <p class="card-text small text-muted">查看历史康复分析报告</p>
+                                    <a href="{{ url_for('main.user_records') }}" class="btn btn-secondary mt-2 stretched-link">
+                                        <i class="fas fa-arrow-right me-1"></i>查看报告
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 康复训练流程 -->
+                    <div class="mt-5">
+                        <h3 class="text-center mb-4"><i class="fas fa-route me-2"></i>康复训练流程</h3>
+                        <div class="d-flex justify-content-center">
+                            <div class="process-flow">
+                                <div class="process-step">
+                                    <div class="process-icon">
+                                        <i class="fas fa-x-ray"></i>
+                                    </div>
+                                    <div class="process-line"></div>
+                                    <div class="process-text">
+                                        <h5>Cobb角分析</h5>
+                                        <p class="small">上传照片获取测量结果</p>
+                                    </div>
+                                </div>
+                                <div class="process-step">
+                                    <div class="process-icon">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div class="process-line"></div>
+                                    <div class="process-text">
+                                        <h5>康复计划生成</h5>
+                                        <p class="small">根据严重程度生成计划</p>
+                                    </div>
+                                </div>
+                                <div class="process-step">
+                                    <div class="process-icon">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <div class="process-line"></div>
+                                    <div class="process-text">
+                                        <h5>实时姿势评估</h5>
+                                        <p class="small">摄像头捕捉姿势并矫正</p>
+                                    </div>
+                                </div>
+                                <div class="process-step">
+                                    <div class="process-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="process-text">
+                                        <h5>进度跟踪</h5>
+                                        <p class="small">查看训练效果和进展</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('main.rehabilitation') }}" class="btn btn-lg btn-outline-primary">
+                                <i class="fas fa-dumbbell me-2"></i>开始康复训练
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户登录/注册模块 -->
+    <div class="row mt-4 justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="text-center mb-0"><i class="fas fa-user-circle me-2"></i>用户中心</h2>
+                </div>
+                <div class="card-body" id="userPanel">
+                    <div id="loginForm" class="d-none">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">电子邮箱</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <button type="button" class="btn btn-success" id="registerBtn">注册/登录</button>
+                    </div>
+                    <div id="userInfo" class="text-center d-none">
+                        <h4 class="mb-3">当前用户</h4>
+                        <p class="lead"><span id="currentUsername">未登录</span></p>
+                        <p>用户ID: <span id="currentUserId"></span></p>
+                        <div class="mt-3">
+                            <a href="{{ url_for('main.user_records') }}" class="btn btn-primary me-2">我的记录</a>
+                            <button type="button" class="btn btn-outline-danger" id="logoutBtn">退出登录</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+.feature-icon {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.process-flow {
+    display: flex;
+    justify-content: space-between;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+.process-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+}
+.process-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #4a6bff;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
+}
+.process-line {
+    position: absolute;
+    top: 25px;
+    right: -50%;
+    width: 100%;
+    height: 3px;
+    background-color: #e9ecef;
+    z-index: 1;
+}
+.process-step:last-child .process-line {
+    display: none;
+}
+.process-text {
+    text-align: center;
+    max-width: 120px;
+}
+.process-text h5 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+@media (max-width: 768px) {
+    .process-flow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .process-step {
+        flex-direction: row;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .process-icon {
+        margin-right: 15px;
+        margin-bottom: 0;
+    }
+    .process-line {
+        display: none;
+    }
+    .process-text {
+        text-align: left;
+        max-width: none;
+    }
+}
+</style>
+
+<!-- 添加用户登录/注册功能的JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 检查是否已登录
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        
+        const loginForm = document.getElementById('loginForm');
+        const userInfo = document.getElementById('userInfo');
+        
+        if (userId && username) {
+            // 已登录，显示用户信息
+            document.getElementById('currentUsername').textContent = username;
+            document.getElementById('currentUserId').textContent = userId;
+            loginForm.classList.add('d-none');
+            userInfo.classList.remove('d-none');
+        } else {
+            // 未登录，显示登录表单
+            loginForm.classList.remove('d-none');
+            userInfo.classList.add('d-none');
+        }
+        
+        // 注册/登录按钮点击事件
+        document.getElementById('registerBtn').addEventListener('click', function() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            
+            if (!username) {
+                alert('请输入用户名');
+                return;
+            }
+            
+            // 发送注册/登录请求
+            fetch('/api/v1/user/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 保存用户信息到本地存储
+                    localStorage.setItem('userId', data.data.user_id);
+                    localStorage.setItem('username', data.data.username);
+                    
+                    // 更新界面
+                    document.getElementById('currentUsername').textContent = data.data.username;
+                    document.getElementById('currentUserId').textContent = data.data.user_id;
+                    loginForm.classList.add('d-none');
+                    userInfo.classList.remove('d-none');
+                    
+                    alert('登录成功！');
+                } else {
+                    alert('登录失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('登录错误:', error);
+                alert('登录时发生错误，请稍后重试');
+            });
+        });
+        
+        // 退出登录按钮点击事件
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            // 清除本地存储中的用户信息
+            localStorage.removeItem('userId');
+            localStorage.removeItem('username');
+            
+            // 更新界面
+            loginForm.classList.remove('d-none');
+            userInfo.classList.add('d-none');
+            
+            alert('已退出登录');
+        });
+        
+        // 开始按钮点击事件
+        document.getElementById('startBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // 如果未登录，显示登录表单
+            if (!localStorage.getItem('userId')) {
+                loginForm.classList.remove('d-none');
+                userInfo.classList.add('d-none');
+                loginForm.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // 已登录，跳转到上传页面
+                window.location.href = "{{ url_for('main.upload') }}";
+            }
+        });
+    });
+</script>
+{% endblock %} 

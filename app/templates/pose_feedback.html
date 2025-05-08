@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脊柱康复训练</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .video-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .video-feed {
+            width: 640px;
+            height: 480px;
+            border: 3px solid #3498db;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .feedback-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .score-display {
+            font-size: 28px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .status-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .status-CORRECT {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .status-PARTIALLY_CORRECT {
+            background-color: #f39c12;
+            color: white;
+        }
+        .status-INCORRECT {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .status-UNKNOWN {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .feedback-message {
+            font-size: 18px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .pose-description {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>脊柱康复训练指导</h1>
+        
+        <div class="pose-description">
+            <h2 id="pose-title">{{ pose_type|replace('_', ' ')|title }}</h2>
+            <p id="pose-instructions">请将身体调整至与屏幕中的指导轮廓一致，保持正确姿势几秒钟即可进入下一个动作。</p>
+        </div>
+        
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" class="video-feed" alt="实时摄像头反馈">
+        </div>
+        
+        <div class="feedback-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span class="status-indicator status-UNKNOWN" id="status-indicator">等待检测</span>
+                    <span id="pose-name">{{ pose_type|replace('_', ' ')|title }}</span>
+                </div>
+                <div class="score-display">
+                    分数: <span id="score-value">0</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+            </div>
+            
+            <div class="feedback-message" id="feedback-message">
+                请面对摄像头，保持身体在画面中央
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-pose">上一个动作</button>
+            <button id="next-pose">下一个动作</button>
+            <button id="reset-pose">重置当前动作</button>
+        </div>
+    </div>
+    
+    <script>
+        // 当前姿势类型
+        let currentPoseType = "{{ pose_type }}";
+        // 姿势列表
+        const poseTypes = [
+            'spine_stretch',
+            'lateral_bend',
+            'pelvic_tilt',
+            'shoulder_roll',
+            'cat_cow_stretch'
+        ];
+        
+        // 姿势说明
+        const poseDescriptions = {
+            'spine_stretch': '脊柱伸展 - 保持背部挺直，缓慢向前弯腰，伸展脊柱肌肉',
+            'lateral_bend': '侧弯矫正 - 保持身体正直，向两侧缓慢弯曲，帮助矫正脊柱侧弯',
+            'pelvic_tilt': '骨盆倾斜 - 站立时收紧腹部，轻微倾斜骨盆，帮助改善下背部姿势',
+            'shoulder_roll': '肩部滚动 - 缓慢滚动肩膀，改善上背部姿势和减轻紧张',
+            'cat_cow_stretch': '猫牛式伸展 - 四肢支撑，交替拱起和下沉脊柱，增强灵活性'
+        };
+        
+        // 获取元素
+        const statusIndicator = document.getElementById('status-indicator');
+        const scoreValue = document.getElementById('score-value');
+        const progressBar = document.getElementById('progress-bar');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const poseTitle = document.getElementById('pose-title');
+        const poseInstructions = document.getElementById('pose-instructions');
+        const poseName = document.getElementById('pose-name');
+        
+        // 按钮事件
+        document.getElementById('prev-pose').addEventListener('click', () => {
+            const currentIndex = poseTypes.indexOf(currentPoseType);
+            if (currentIndex > 0) {
+                const newPose = poseTypes[currentIndex - 1];
+                window.location.href = `/pose/video_feedback?pose_type=${newPose}`;
+            }
+        });
+        
+        document.getElementById('next-pose').addEventListener('click', () => {
+            const currentIndex = poseTypes.indexOf(currentPoseType);
+            if (currentIndex < poseTypes.length - 1) {
+                const newPose = poseTypes[currentIndex + 1];
+                window.location.href = `/pose/video_feedback?pose_type=${newPose}`;
+            }
+        });
+        
+        document.getElementById('reset-pose').addEventListener('click', () => {
+            // 重新加载当前页面
+            window.location.reload();
+        });
+        
+        // 更新UI
+        function updateUI(data) {
+            // 更新状态指示器
+            statusIndicator.className = `status-indicator status-${data.status}`;
+            statusIndicator.textContent = getStatusText(data.status);
+            
+            // 更新分数
+            scoreValue.textContent = data.score;
+            
+            // 更新进度条 (基于分数)
+            const progressWidth = Math.min(100, Math.max(0, data.score));
+            progressBar.style.width = `${progressWidth}%`;
+            
+            // 进度条颜色
+            if (data.score >= 85) {
+                progressBar.style.backgroundColor = '#2ecc71'; // 绿色
+            } else if (data.score >= 70) {
+                progressBar.style.backgroundColor = '#3498db'; // 蓝色
+            } else if (data.score >= 50) {
+                progressBar.style.backgroundColor = '#f39c12'; // 橙色
+            } else {
+                progressBar.style.backgroundColor = '#e74c3c'; // 红色
+            }
+            
+            // 更新反馈消息
+            feedbackMessage.textContent = data.feedback;
+            
+            // 如果需要进入下一个动作
+            if (data.should_advance) {
+                const currentIndex = poseTypes.indexOf(currentPoseType);
+                if (currentIndex < poseTypes.length - 1) {
+                    // 短暂延迟后进入下一个动作
+                    setTimeout(() => {
+                        const newPose = poseTypes[currentIndex + 1];
+                        window.location.href = `/pose/video_feedback?pose_type=${newPose}`;
+                    }, 2000);
+                }
+            }
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            switch (status) {
+                case 'CORRECT': return '正确';
+                case 'PARTIALLY_CORRECT': return '基本正确';
+                case 'INCORRECT': return '需要调整';
+                default: return '未知';
+            }
+        }
+        
+        // 更新姿势描述
+        function updatePoseDescription() {
+            const formattedName = currentPoseType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            poseTitle.textContent = formattedName;
+            poseName.textContent = formattedName;
+            poseInstructions.textContent = poseDescriptions[currentPoseType] || 
+                '请将身体调整至与屏幕中的指导轮廓一致，保持正确姿势几秒钟即可完成。';
+        }
+        
+        // 初始化
+        updatePoseDescription();
+        
+        // 定期获取当前状态
+        setInterval(() => {
+            fetch('/api/pose/current_status')
+                .then(response => response.json())
+                .then(data => {
+                    // 只有当姿势类型匹配时才更新
+                    if (data.pose_type === currentPoseType) {
+                        updateUI(data);
+                    }
+                })
+                .catch(error => console.error('获取状态失败:', error));
+        }, 500);  // 每500毫秒更新一次
+    </script>
+</body>
+</html> 

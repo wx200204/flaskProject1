@@ -1,0 +1,130 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <i class="fas fa-spine me-2"></i>脊柱侧弯分析系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.upload') }}">
+                        <i class="fas fa-x-ray me-1"></i>脊柱分析
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="rehabDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-dumbbell me-1"></i>康复训练
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="rehabDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('main.rehabilitation') }}">
+                            <i class="fas fa-clipboard-list me-2"></i>康复计划生成
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.rehabilitation') }}">
+                            <i class="fas fa-video me-2"></i>实时康复指导
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.user_records') }}#rehab-history">
+                            <i class="fas fa-history me-2"></i>康复训练记录
+                        </a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('posture_eval.posture_index') }}">
+                        <i class="fas fa-user-check me-1"></i>体态评估
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.user_records') }}">
+                        <i class="fas fa-history me-1"></i>我的记录
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center" id="navUserInfo">
+                <!-- 用户信息将通过JavaScript动态填充 -->
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="navUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle me-1"></i>
+                        <span id="navUsername">未登录</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navUserDropdown" id="userDropdownMenu">
+                        <li><a class="dropdown-item d-none" id="navProfileLink" href="{{ url_for('main.user_records') }}">
+                            <i class="fas fa-id-card me-2"></i>个人资料
+                        </a></li>
+                        <li><a class="dropdown-item d-none" id="navRecordsLink" href="{{ url_for('main.user_records') }}">
+                            <i class="fas fa-clipboard-list me-2"></i>我的记录
+                        </a></li>
+                        <li><hr class="dropdown-divider d-none" id="navDivider"></li>
+                        <li><button class="dropdown-item d-none" id="navLogoutBtn">
+                            <i class="fas fa-sign-out-alt me-2"></i>退出登录
+                        </button></li>
+                        <li><a class="dropdown-item" id="navLoginLink" href="/">
+                            <i class="fas fa-sign-in-alt me-2"></i>登录/注册
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // 页面加载完成后获取用户状态
+    document.addEventListener('DOMContentLoaded', function() {
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        
+        const navUsername = document.getElementById('navUsername');
+        const navLogoutBtn = document.getElementById('navLogoutBtn');
+        const navLoginLink = document.getElementById('navLoginLink');
+        const navProfileLink = document.getElementById('navProfileLink');
+        const navRecordsLink = document.getElementById('navRecordsLink');
+        const navDivider = document.getElementById('navDivider');
+        
+        if (userId && username) {
+            // 已登录，显示用户名和相关菜单项
+            navUsername.textContent = username;
+            navLogoutBtn.classList.remove('d-none');
+            navProfileLink.classList.remove('d-none');
+            navRecordsLink.classList.remove('d-none');
+            navDivider.classList.remove('d-none');
+            navLoginLink.classList.add('d-none');
+            
+            // 退出登录按钮点击事件
+            navLogoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('userId');
+                localStorage.removeItem('username');
+                location.reload();
+            });
+        } else {
+            // 未登录，只显示登录链接
+            navUsername.textContent = '未登录';
+        }
+        
+        // 高亮当前菜单项
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+        
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            if (linkPath && currentPath === linkPath || (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/')) {
+                link.classList.add('active');
+                
+                // 如果是下拉菜单中的项目，也高亮父菜单
+                const dropdownParent = link.closest('.dropdown');
+                if (dropdownParent) {
+                    const parentLink = dropdownParent.querySelector('.dropdown-toggle');
+                    if (parentLink) {
+                        parentLink.classList.add('active');
+                    }
+                }
+            }
+        });
+    });
+</script> 

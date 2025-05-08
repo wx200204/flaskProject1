@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脊柱侧弯康复系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            background-color: #4a6bff;
+            color: white;
+            font-weight: bold;
+            border-top-left-radius: 8px !important;
+            border-top-right-radius: 8px !important;
+        }
+        .info-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #4a6bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #3c56d6;
+        }
+        .severity-mild {
+            background-color: #28a745;
+        }
+        .severity-moderate {
+            background-color: #ffc107;
+        }
+        .severity-severe {
+            background-color: #dc3545;
+        }
+        .hidden {
+            display: none;
+        }
+        .exercise-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        /* 新增样式 */
+        .recommendation-card {
+            border-left: 4px solid #4a6bff;
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .progress-chart {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            color: white;
+        }
+        .tag-spine {
+            background-color: #4a6bff;
+        }
+        .tag-side {
+            background-color: #28a745;
+        }
+        .tag-rotation {
+            background-color: #fd7e14;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .history-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .data-visualization {
+            height: 200px;
+            margin: 15px 0;
+        }
+        .ai-recommendation {
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .analysis-result {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>脊柱侧弯康复系统</h1>
+            <p class="lead">根据您的侧弯情况，提供个性化康复训练计划</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- 分析结果导入区 -->
+                <div class="info-section">
+                    <h2><i class="fas fa-chart-line me-2"></i>康复计划生成</h2>
+                    
+                    <div class="alert alert-info mb-3" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>您可以手动输入Cobb角度值，或者导入分析结果自动生成康复计划
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <i class="fas fa-file-import me-2"></i>导入分析结果
+                        </div>
+                        <div class="card-body">
+                            <p>从之前的脊柱侧弯分析中导入数据，自动生成个性化康复计划</p>
+                            <button id="importAnalysisBtn" class="btn btn-outline-primary">
+                                <i class="fas fa-file-import me-2"></i>导入最近分析结果
+                            </button>
+                            
+                            <div id="analysisResult" class="analysis-result mt-3 hidden">
+                                <h5><i class="fas fa-check-circle me-2 text-success"></i>已导入分析结果</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Cobb角度:</strong> <span id="importedCobbAngle">0</span>°</p>
+                                        <p><strong>严重程度:</strong> <span id="importedSeverity">未知</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>分析日期:</strong> <span id="importedDate">--</span></p>
+                                        <p><strong>置信度:</strong> <span id="importedConfidence">0</span>%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-keyboard me-2"></i>手动输入
+                        </div>
+                        <div class="card-body">
+                            <form id="cobb-angle-form" class="mb-4">
+                                <div class="mb-3">
+                                    <label for="cobb-angle" class="form-label">Cobb角度 (度)</label>
+                                    <input type="number" class="form-control" id="cobb-angle" min="0" max="90" step="0.1" required>
+                                    <div class="form-text">请输入医生诊断的Cobb角度值</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="user-age" class="form-label">年龄 (可选)</label>
+                                    <input type="number" class="form-control" id="user-age" min="5" max="100">
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-magic me-2"></i>生成康复计划
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="plan-details" class="info-section hidden">
+                    <h2><i class="fas fa-clipboard-list me-2"></i>康复计划详情</h2>
+                    <div id="plan-info">
+                        <div class="alert" id="severity-alert" role="alert"></div>
+                        <p id="plan-description"></p>
+                        <p id="plan-recommendation"></p>
+                        
+                        <div class="row mt-4">
+                            <div class="col-sm-4 text-center">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-stopwatch fa-2x mb-2 text-primary"></i>
+                                        <h5>总训练时长</h5>
+                                        <p class="h3 text-primary" id="total-duration">0</p>
+                                        <p class="text-muted">分钟/天</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 text-center">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-calendar-alt fa-2x mb-2 text-success"></i>
+                                        <h5>推荐频率</h5>
+                                        <p class="h3 text-success">每日</p>
+                                        <p class="text-muted">持续训练</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 text-center">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <i class="fas fa-chart-line fa-2x mb-2 text-info"></i>
+                                        <h5>预期改善</h5>
+                                        <p class="h3 text-info" id="expected-improvement">-</p>
+                                        <p class="text-muted">坚持训练</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="mt-4"><i class="fas fa-dumbbell me-2"></i>训练项目</h3>
+                    <div id="exercises-container" class="row"></div>
+
+                    <div class="ai-recommendation">
+                        <h4><i class="fas fa-robot me-2"></i>AI个性化建议</h4>
+                        <p id="ai-suggestion">基于您的脊柱侧弯情况，我们建议您每天坚持完成上述训练项目，保持良好姿势，避免长时间不良坐姿。</p>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button id="start-session-btn" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play-circle me-2"></i>开始康复训练
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- 最近训练记录 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-history me-2"></i>最近训练记录
+                    </div>
+                    <div class="card-body">
+                        <div id="history-container">
+                            <p class="text-center text-muted">暂无训练记录</p>
+                        </div>
+                        <a href="{{ url_for('main.user_records') }}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                            <i class="fas fa-external-link-alt me-1"></i>查看完整记录
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>康复知识
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">脊柱侧弯是什么？</h5>
+                        <p class="card-text">脊柱侧弯是指脊柱在冠状面上呈现侧方弯曲，通常伴有脊柱的旋转。通过Cobb角度测量可以评估侧弯的严重程度。</p>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <i class="fas fa-lightbulb me-2"></i>康复建议
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">坚持训练的重要性</h5>
+                        <p class="card-text">持续进行针对性的康复训练可以帮助改善姿势，增强核心肌肉，减轻症状，甚至在某些情况下改善侧弯角度。</p>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle me-2"></i>注意事项
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <ul>
+                                <li>请在安全的环境中进行训练</li>
+                                <li>如感到疼痛不适，请立即停止</li>
+                                <li>建议在专业医生指导下使用本系统</li>
+                                <li>定期复查脊柱侧弯情况</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cobbAngleForm = document.getElementById('cobb-angle-form');
+            const planDetails = document.getElementById('plan-details');
+            const exercisesContainer = document.getElementById('exercises-container');
+            const startSessionBtn = document.getElementById('start-session-btn');
+            const importAnalysisBtn = document.getElementById('importAnalysisBtn');
+            const analysisResult = document.getElementById('analysisResult');
+            
+            let currentPlan = null;
+            let sessionId = null;
+            
+            // 导入分析结果按钮点击事件
+            importAnalysisBtn.addEventListener('click', function() {
+                // 获取用户ID
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    alert('请先登录后再导入分析结果');
+                    return;
+                }
+                
+                // 从API获取最近分析结果
+                fetch(`/api/v1/user/analysis/latest?user_id=${userId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 200 && data.data) {
+                            // 显示导入的分析结果
+                            document.getElementById('importedCobbAngle').textContent = data.data.cobb_angle.toFixed(1);
+                            document.getElementById('importedSeverity').textContent = getSeverityText(data.data.severity);
+                            document.getElementById('importedDate').textContent = new Date(data.data.timestamp).toLocaleDateString();
+                            document.getElementById('importedConfidence').textContent = (data.data.confidence * 100).toFixed(0);
+                            
+                            // 设置Cobb角度输入框的值
+                            document.getElementById('cobb-angle').value = data.data.cobb_angle.toFixed(1);
+                            
+                            // 显示分析结果区域
+                            analysisResult.classList.remove('hidden');
+                            
+                            // 自动生成康复计划
+                            generateRehabPlan(data.data.cobb_angle);
+                        } else {
+                            alert('未找到分析结果，请手动输入Cobb角度');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('获取分析结果失败，请手动输入Cobb角度');
+                    });
+            });
+
+            // 提交表单生成康复计划
+            cobbAngleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const cobbAngle = parseFloat(document.getElementById('cobb-angle').value);
+                if (!cobbAngle) {
+                    alert('请输入有效的Cobb角度值');
+                    return;
+                }
+                
+                generateRehabPlan(cobbAngle);
+            });
+            
+            // 生成康复计划函数
+            function generateRehabPlan(cobbAngle) {
+                const userAge = document.getElementById('user-age').value;
+                
+                // 构建请求数据
+                const requestData = {
+                    cobb_angle: cobbAngle,
+                    user_info: {}
+                };
+                
+                if (userAge) {
+                    requestData.user_info.age = parseInt(userAge);
+                }
+                
+                // 发送请求获取康复计划
+                fetch('/api/v1/rehab/plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': localStorage.getItem('userId') || ''
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        currentPlan = data.data;
+                        displayPlan(currentPlan);
+                        
+                        // 设置预期改善
+                        setExpectedImprovement(cobbAngle);
+                        
+                        // 加载训练历史记录
+                        loadTrainingHistory();
+                    } else {
+                        alert('获取康复计划失败：' + data.msg);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('请求失败，请稍后重试');
+                });
+            }
+            
+            // 设置预期改善
+            function setExpectedImprovement(cobbAngle) {
+                let improvement = '';
+                
+                if (cobbAngle < 25) {
+                    improvement = '姿势改善';
+                } else if (cobbAngle < 40) {
+                    improvement = '减缓进展';
+                } else {
+                    improvement = '维持稳定';
+                }
+                
+                document.getElementById('expected-improvement').textContent = improvement;
+                
+                // 根据Cobb角度设置AI建议
+                let aiSuggestion = '';
+                if (cobbAngle < 15) {
+                    aiSuggestion = '您的侧弯程度较轻，通过坚持康复训练和良好姿势习惯，有望显著改善姿势问题。建议每天完成训练并保持正确坐姿。';
+                } else if (cobbAngle < 25) {
+                    aiSuggestion = '您的侧弯为轻度，建议每日坚持完成康复训练，同时加强核心肌肉力量。保持良好姿势，避免长时间不良坐姿，每30分钟起身活动一次。';
+                } else if (cobbAngle < 40) {
+                    aiSuggestion = '您的侧弯程度为中度，除了每日康复训练外，建议定期咨询专业医生，适当佩戴矫形支具辅助治疗。注意姿势，避免剧烈运动和不对称负重。';
+                } else {
+                    aiSuggestion = '您的侧弯程度较重，康复训练仅能辅助改善症状。请务必咨询专业医生获取全面治疗方案，定期复查，按医嘱完成训练和其他治疗措施。';
+                }
+                
+                document.getElementById('ai-suggestion').textContent = aiSuggestion;
+            }
+            
+            // 加载训练历史记录
+            function loadTrainingHistory() {
+                const userId = localStorage.getItem('userId');
+                if (!userId) return;
+                
+                fetch(`/api/v1/rehab/history?user_id=${userId}&limit=5`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 200 && data.data && data.data.length > 0) {
+                            const historyContainer = document.getElementById('history-container');
+                            historyContainer.innerHTML = '';
+                            
+                            data.data.forEach(record => {
+                                const historyItem = document.createElement('div');
+                                historyItem.className = 'history-item';
+                                
+                                // 计算完成度百分比
+                                const completionPercent = (record.completed_exercises / record.total_exercises * 100).toFixed(0);
+                                
+                                historyItem.innerHTML = `
+                                    <div class="me-3">
+                                        <i class="fas fa-calendar-check text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div>${new Date(record.timestamp).toLocaleDateString()}</div>
+                                        <div class="history-date">${record.duration}分钟 | 完成度: ${completionPercent}%</div>
+                                        <div class="progress-chart">
+                                            <div class="progress-fill bg-success" style="width: ${completionPercent}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                historyContainer.appendChild(historyItem);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error loading history:', error));
+            }
+            
+            // 显示康复计划
+            function displayPlan(plan) {
+                // 更新计划信息
+                document.getElementById('plan-description').textContent = plan.description;
+                document.getElementById('plan-recommendation').textContent = plan.recommendation;
+                document.getElementById('total-duration').textContent = Math.round(plan.total_duration / 60);
+                
+                // 设置严重程度提示
+                const severityAlert = document.getElementById('severity-alert');
+                severityAlert.textContent = `脊柱侧弯严重程度: ${getSeverityText(plan.severity)}`;
+                severityAlert.className = `alert severity-${plan.severity.toLowerCase()}`;
+                
+                // 显示训练项目
+                exercisesContainer.innerHTML = '';
+                plan.exercises.forEach(exercise => {
+                    const exerciseCard = document.createElement('div');
+                    exerciseCard.className = 'col-md-6 mb-3';
+                    
+                    // 创建标签HTML
+                    let tagsHtml = '';
+                    if (exercise.type === 'spine_stretch') {
+                        tagsHtml += '<span class="tag tag-spine">脊柱伸展</span>';
+                    } else if (exercise.type === 'side_bend') {
+                        tagsHtml += '<span class="tag tag-side">侧弯拉伸</span>';
+                    } else if (exercise.type === 'rotation') {
+                        tagsHtml += '<span class="tag tag-rotation">躯干旋转</span>';
+                    }
+                    
+                    // 计算总时长
+                    const totalTime = (exercise.duration * exercise.repetitions * exercise.sets) / 60;
+                    
+                    exerciseCard.innerHTML = `
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                ${exercise.name}
+                                <i class="fas fa-dumbbell"></i>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    ${tagsHtml}
+                                </div>
+                                <p>${exercise.description}</p>
+                                <div class="d-flex justify-content-between">
+                                    <div><i class="fas fa-clock me-1"></i> ${totalTime.toFixed(1)}分钟</div>
+                                    <div><i class="fas fa-repeat me-1"></i> ${exercise.repetitions} x ${exercise.sets}组</div>
+                                </div>
+                                <div class="mt-2">
+                                    <div><i class="fas fa-star me-1 text-warning"></i> 难度: ${'★'.repeat(exercise.difficulty)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    exercisesContainer.appendChild(exerciseCard);
+                });
+                
+                // 显示计划详情区域
+                planDetails.classList.remove('hidden');
+                
+                // 平滑滚动到计划详情
+                planDetails.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // 开始康复会话
+            startSessionBtn.addEventListener('click', function() {
+                if (!currentPlan) return;
+                
+                const cobbAngle = parseFloat(document.getElementById('cobb-angle').value);
+                const userAge = document.getElementById('user-age').value;
+                
+                // 构建请求数据
+                const requestData = {
+                    cobb_angle: cobbAngle,
+                    plan_id: currentPlan.plan_id,
+                    user_info: {}
+                };
+                
+                if (userAge) {
+                    requestData.user_info.age = parseInt(userAge);
+                }
+                
+                // 发送请求创建康复会话
+                fetch('/api/v1/rehab/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': localStorage.getItem('userId') || ''
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        sessionId = data.data.session_id;
+                        window.location.href = `/rehab/session/${sessionId}?plan_id=${currentPlan.plan_id}`;
+                    } else {
+                        alert('创建康复会话失败：' + data.msg);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('请求失败，请稍后重试');
+                });
+            });
+            
+            // 辅助函数
+            function getSeverityText(severity) {
+                switch (severity) {
+                    case 'MILD': return '轻度';
+                    case 'MODERATE': return '中度';
+                    case 'SEVERE': return '重度';
+                    default: return '未知';
+                }
+            }
+            
+            function getExerciseTypeText(type) {
+                switch (type) {
+                    case 'spine_stretch': return '脊柱伸展';
+                    case 'side_bend': return '侧弯拉伸';
+                    case 'rotation': return '躯干旋转';
+                    default: return type;
+                }
+            }
+            
+            // 检查是否有URL参数中包含Cobb角度（从分析页面跳转）
+            const urlParams = new URLSearchParams(window.location.search);
+            const cobbParam = urlParams.get('cobb');
+            const severityParam = urlParams.get('severity');
+            
+            if (cobbParam) {
+                // 设置Cobb角度输入并自动生成计划
+                document.getElementById('cobb-angle').value = cobbParam;
+                
+                if (severityParam) {
+                    document.getElementById('importedSeverity').textContent = getSeverityText(severityParam);
+                    document.getElementById('importedCobbAngle').textContent = cobbParam;
+                    document.getElementById('importedDate').textContent = new Date().toLocaleDateString();
+                    analysisResult.classList.remove('hidden');
+                }
+                
+                // 自动生成康复计划
+                generateRehabPlan(parseFloat(cobbParam));
+            }
+        });
+    </script>
+</body>
+</html> 

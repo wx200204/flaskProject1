@@ -1,0 +1,966 @@
+{% extends "layout.html" %}
+
+{% block title %}体态评估系统{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">全身体态评估</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p><i class="fas fa-info-circle"></i> 请按照提示上传您的视图照片（正面、背面、左侧面、右侧面），系统将自动分析您的体态问题。</p>
+                        <p class="mb-1"><strong>重要提示：</strong> 您可以选择上传一张或多张视图照片，但上传越完整的视图照片，系统分析的结果会越全面。</p>
+                        <p><strong>拍摄指南：</strong></p>
+                        <ul>
+                            <li>请穿着贴身、单色衣物，以便于系统准确识别您的体态</li>
+                            <li>站姿要自然，双臂放松下垂，双脚与肩同宽</li>
+                            <li>确保整个身体在画面中，背景简单、明亮</li>
+                            <li>拍摄距离保持2-3米，相机与身体中心水平</li>
+                        </ul>
+                    </div>
+
+                    <form id="posture-form" enctype="multipart/form-data">
+                        <div class="row">
+                            <!-- 正面视图 -->
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">正面视图</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="image-upload-container">
+                                            <div class="image-preview">
+                                                <img id="front-preview" src="{{ url_for('static', filename='img/front_silhouette.png') }}" alt="正面示意图" class="img-fluid mb-2">
+                                            </div>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="front-image" name="front" accept="image/*">
+                                                <label class="btn btn-outline-primary w-100" for="front-image">选择正面照片</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 背面视图 -->
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">背面视图</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="image-upload-container">
+                                            <div class="image-preview">
+                                                <img id="back-preview" src="{{ url_for('static', filename='img/back_silhouette.png') }}" alt="背面示意图" class="img-fluid mb-2">
+                                            </div>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="back-image" name="back" accept="image/*">
+                                                <label class="btn btn-outline-primary w-100" for="back-image">选择背面照片</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 左侧视图 -->
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">左侧视图</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="image-upload-container">
+                                            <div class="image-preview">
+                                                <img id="left-preview" src="{{ url_for('static', filename='img/left_silhouette.png') }}" alt="左侧示意图" class="img-fluid mb-2">
+                                            </div>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="left-image" name="left" accept="image/*">
+                                                <label class="btn btn-outline-primary w-100" for="left-image">选择左侧照片</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 右侧视图 -->
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">右侧视图</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="image-upload-container">
+                                            <div class="image-preview">
+                                                <img id="right-preview" src="{{ url_for('static', filename='img/right_silhouette.png') }}" alt="右侧示意图" class="img-fluid mb-2">
+                                            </div>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="right-image" name="right" accept="image/*">
+                                                <label class="btn btn-outline-primary w-100" for="right-image">选择右侧照片</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 验证提示 -->
+                        <div class="alert alert-warning mt-3 d-none" id="validation-alert">
+                            <i class="fas fa-exclamation-triangle"></i> 请至少上传一张视图照片进行分析。
+                        </div>
+
+                        <!-- 提交按钮 -->
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">
+                                <i class="fas fa-search-plus"></i> 开始分析
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- 加载中提示 -->
+                    <div id="loading" class="text-center mt-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2">正在分析，请稍候...</p>
+                    </div>
+
+                    <!-- 分析结果区域 -->
+                    <div id="analysis-results" class="mt-4 d-none">
+                        <div class="card shadow">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="mb-0">体态分析结果</h3>
+                            </div>
+                            <div class="card-body">
+                                <!-- 缺失视图提示 -->
+                                <div id="missing-views-alert" class="alert alert-warning d-none mb-3">
+                                    <i class="fas fa-info-circle"></i> <span id="missing-views-message"></span>
+                                </div>
+                                
+                                <!-- 综合评估提示 -->
+                                <div id="comprehensive-analysis-alert" class="alert alert-success d-none mb-3">
+                                    <i class="fas fa-check-circle"></i> <span>系统已执行全面的四视图综合分析，评估结果的可靠性和准确性更高。</span>
+                                </div>
+                                
+                                <!-- 结果标签页 -->
+                                <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">总体评估</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="visualizations-tab" data-bs-toggle="tab" data-bs-target="#visualizations" type="button" role="tab" aria-controls="visualizations" aria-selected="false">可视化分析</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">详细数据</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab" aria-controls="recommendations" aria-selected="false">改善建议</button>
+                                    </li>
+                                </ul>
+                                
+                                <!-- 标签页内容 -->
+                                <div class="tab-content mt-3" id="resultTabsContent">
+                                    <!-- 总体评估 -->
+                                    <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h5>体态问题汇总</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <ul id="posture-issues-list" class="list-group">
+                                                            <!-- 动态填充体态问题列表 -->
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h5>整体评估</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p><strong>严重程度:</strong> <span id="severity-level"></span></p>
+                                                        <div class="progress mb-3">
+                                                            <div id="severity-progress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                        <p id="overall-summary"></p>
+                                                        <p id="analyzed-views" class="text-muted small"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 可视化分析 -->
+                                    <div class="tab-pane fade" id="visualizations" role="tabpanel" aria-labelledby="visualizations-tab">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h5>正面分析</h5>
+                                                    </div>
+                                                    <div class="card-body text-center">
+                                                        <div id="front-view-placeholder" class="text-muted p-3 d-none">
+                                                            <i class="fas fa-image fa-3x mb-2"></i>
+                                                            <p>未提供正面视图照片</p>
+                                                        </div>
+                                                        <img id="front-analysis" src="" alt="正面分析" class="img-fluid analysis-image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h5>背面分析</h5>
+                                                    </div>
+                                                    <div class="card-body text-center">
+                                                        <div id="back-view-placeholder" class="text-muted p-3 d-none">
+                                                            <i class="fas fa-image fa-3x mb-2"></i>
+                                                            <p>未提供背面视图照片</p>
+                                                        </div>
+                                                        <img id="back-analysis" src="" alt="背面分析" class="img-fluid analysis-image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h5>左侧分析</h5>
+                                                    </div>
+                                                    <div class="card-body text-center">
+                                                        <div id="left-view-placeholder" class="text-muted p-3 d-none">
+                                                            <i class="fas fa-image fa-3x mb-2"></i>
+                                                            <p>未提供左侧视图照片</p>
+                                                        </div>
+                                                        <img id="left-analysis" src="" alt="左侧分析" class="img-fluid analysis-image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h5>右侧分析</h5>
+                                                    </div>
+                                                    <div class="card-body text-center">
+                                                        <div id="right-view-placeholder" class="text-muted p-3 d-none">
+                                                            <i class="fas fa-image fa-3x mb-2"></i>
+                                                            <p>未提供右侧视图照片</p>
+                                                        </div>
+                                                        <img id="right-analysis" src="" alt="右侧分析" class="img-fluid analysis-image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 详细数据 -->
+                                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card mb-3">
+                                                    <div class="card-header">
+                                                        <h5>角度数据</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>指标名称</th>
+                                                                    <th>测量值</th>
+                                                                    <th>正常范围</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="angles-table">
+                                                                <!-- 动态填充角度数据 -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card mb-3">
+                                                    <div class="card-header">
+                                                        <h5>测量数据</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>指标名称</th>
+                                                                    <th>测量值</th>
+                                                                    <th>正常范围</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="measurements-table">
+                                                                <!-- 动态填充测量数据 -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 添加临床评估部分 -->
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="card mb-3">
+                                                    <div class="card-header">
+                                                        <h5>临床评估数据</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="clinical-assessment-container" class="mt-2">
+                                                            <!-- 动态填充临床评估数据 -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 改善建议 -->
+                                    <div class="tab-pane fade" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
+                                        <div class="alert alert-warning">
+                                            <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> 免责声明</h4>
+                                            <p>以下建议仅供参考，若有严重体态问题，请咨询专业医生或理疗师。</p>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5>改善建议</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="recommendations-content">
+                                                    <!-- 动态填充改善建议 -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 图片预览功能
+    function setupImagePreview(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // 设置各视图图片预览
+    document.addEventListener('DOMContentLoaded', function() {
+        setupImagePreview('front-image', 'front-preview');
+        setupImagePreview('back-image', 'back-preview');
+        setupImagePreview('left-image', 'left-preview');
+        setupImagePreview('right-image', 'right-preview');
+        
+        // 初始化Bootstrap标签页
+        const initTabs = function() {
+            const tabElements = document.querySelectorAll('#resultTabs button[data-bs-toggle="tab"]');
+            tabElements.forEach(tabEl => {
+                tabEl.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const bsTab = new bootstrap.Tab(tabEl);
+                    bsTab.show();
+                });
+            });
+        };
+        
+        // 页面加载时就初始化标签页
+        initTabs();
+        
+        // 添加手动标签页切换功能
+        document.getElementById('resultTabs').addEventListener('click', function(event) {
+            if (event.target.getAttribute('data-bs-toggle') === 'tab') {
+                const tabTarget = event.target.getAttribute('data-bs-target');
+                const tabContent = document.querySelector(tabTarget);
+                
+                // 隐藏所有标签内容
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                // 显示选中的标签内容
+                tabContent.classList.add('show', 'active');
+                
+                // 更新标签状态
+                document.querySelectorAll('#resultTabs button.nav-link').forEach(tab => {
+                    tab.classList.remove('active');
+                    tab.setAttribute('aria-selected', 'false');
+                });
+                
+                event.target.classList.add('active');
+                event.target.setAttribute('aria-selected', 'true');
+            }
+        });
+        
+        // 表单提交
+        document.getElementById('posture-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 检查是否至少上传了一张照片
+            const frontFile = document.getElementById('front-image').files[0];
+            const backFile = document.getElementById('back-image').files[0];
+            const leftFile = document.getElementById('left-image').files[0];
+            const rightFile = document.getElementById('right-image').files[0];
+            
+            if (!frontFile && !backFile && !leftFile && !rightFile) {
+                document.getElementById('validation-alert').classList.remove('d-none');
+                return;
+            } else {
+                document.getElementById('validation-alert').classList.add('d-none');
+            }
+            
+            // 显示加载中
+            document.getElementById('loading').classList.remove('d-none');
+            
+            // 隐藏结果区域
+            document.getElementById('analysis-results').classList.add('d-none');
+            
+            // 准备表单数据
+            const formData = new FormData();
+            
+            // 只添加已选择的文件
+            if (frontFile) formData.append('front', frontFile);
+            if (backFile) formData.append('back', backFile);
+            if (leftFile) formData.append('left', leftFile);
+            if (rightFile) formData.append('right', rightFile);
+            
+            // 发送请求
+            fetch('/posture/evaluate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载中
+                document.getElementById('loading').classList.add('d-none');
+                
+                if (data.status === 'success') {
+                    // 显示结果区域
+                    document.getElementById('analysis-results').classList.remove('d-none');
+                    
+                    // 显示缺失视图警告（如果有）
+                    const missingViewsAlert = document.getElementById('missing-views-alert');
+                    const missingViewsMessage = document.getElementById('missing-views-message');
+                    
+                    if (data.missing_views && data.missing_views.length > 0) {
+                        missingViewsMessage.textContent = data.missing_views_message || 
+                            `未提供以下视图照片，相关体态问题可能无法完全分析: ${data.missing_views.join(', ')}`;
+                        missingViewsAlert.classList.remove('d-none');
+                    } else {
+                        missingViewsAlert.classList.add('d-none');
+                    }
+                    
+                    // 显示已分析的视图信息
+                    const analyzedViews = document.getElementById('analyzed-views');
+                    if (data.analyzed_views && data.analyzed_views.length > 0) {
+                        const viewLabels = {
+                            'front': '正面',
+                            'back': '背面',
+                            'left': '左侧',
+                            'right': '右侧'
+                        };
+                        const analyzedViewLabels = data.analyzed_views.map(view => viewLabels[view] || view);
+                        analyzedViews.textContent = `已分析视图: ${analyzedViewLabels.join(', ')}`;
+                    } else {
+                        analyzedViews.textContent = '';
+                    }
+                    
+                    // 填充体态问题列表
+                    const issuesList = document.getElementById('posture-issues-list');
+                    issuesList.innerHTML = '';
+                    if (data.posture_issues && data.posture_issues.length > 0) {
+                        data.posture_issues.forEach(issue => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.innerHTML = `<i class="fas fa-exclamation-triangle text-warning"></i> ${issue}`;
+                            issuesList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = '<i class="fas fa-check-circle text-success"></i> 未检测到明显体态问题';
+                        issuesList.appendChild(li);
+                    }
+                    
+                    // 设置严重程度
+                    const severityLevel = document.getElementById('severity-level');
+                    const severityProgress = document.getElementById('severity-progress');
+                    
+                    switch(data.severity) {
+                        case '轻微':
+                            severityLevel.textContent = '轻微';
+                            severityLevel.className = 'text-success';
+                            severityProgress.style.width = '25%';
+                            severityProgress.className = 'progress-bar bg-success';
+                            break;
+                        case '中度':
+                            severityLevel.textContent = '中度';
+                            severityLevel.className = 'text-warning';
+                            severityProgress.style.width = '50%';
+                            severityProgress.className = 'progress-bar bg-warning';
+                            break;
+                        case '严重':
+                            severityLevel.textContent = '严重';
+                            severityLevel.className = 'text-danger';
+                            severityProgress.style.width = '75%';
+                            severityProgress.className = 'progress-bar bg-danger';
+                            break;
+                        default:
+                            severityLevel.textContent = '正常';
+                            severityLevel.className = 'text-info';
+                            severityProgress.style.width = '10%';
+                            severityProgress.className = 'progress-bar bg-info';
+                    }
+                    
+                    // 设置总体摘要
+                    document.getElementById('overall-summary').textContent = 
+                        data.posture_issues && data.posture_issues.length > 0 
+                        ? `检测到${data.posture_issues.length}个体态问题，整体评估为"${data.severity}"级别。请查看详细分析和改善建议。` 
+                        : '您的体态状况良好，未检测到明显问题。';
+                    
+                    // 显示是否进行了综合分析
+                    const comprehensiveAlert = document.getElementById('comprehensive-analysis-alert');
+                    if (data.is_comprehensive) {
+                        comprehensiveAlert.classList.remove('d-none');
+                        // 如果有综合评估摘要，添加到总体摘要中
+                        if (data.assessment && data.assessment.comprehensive && data.assessment.comprehensive.summary) {
+                            const summary = data.assessment.comprehensive.summary;
+                            const summaryText = document.createElement('p');
+                            summaryText.className = 'mt-2';
+                            summaryText.innerHTML = `<strong>综合评估结果：</strong> 确认了${summary.total_confirmed_issues}个体态问题，整体严重程度为${summary.overall_severity}，评估质量：${summary.assessment_quality}，评估可信度：${summary.confidence_level}。`;
+                            document.getElementById('overall-summary').appendChild(summaryText);
+                        }
+                    } else {
+                        comprehensiveAlert.classList.add('d-none');
+                    }
+                    
+                    // 设置可视化分析图片
+                    const views = ['front', 'back', 'left', 'right'];
+                    views.forEach(view => {
+                        const placeholder = document.getElementById(`${view}-view-placeholder`);
+                        const image = document.getElementById(`${view}-analysis`);
+                        
+                        if (data.visualizations && data.visualizations[view]) {
+                            image.src = data.visualizations[view];
+                            image.classList.remove('d-none');
+                            placeholder.classList.add('d-none');
+                        } else {
+                            image.classList.add('d-none');
+                            placeholder.classList.remove('d-none');
+                        }
+                    });
+                    
+                    // 填充角度数据
+                    const anglesTable = document.getElementById('angles-table');
+                    anglesTable.innerHTML = '';
+                    
+                    if (data.angles && Object.keys(data.angles).length > 0) {
+                        const normalRanges = {
+                            'shoulder_angle': '±3°',
+                            'hip_angle': '±3°',
+                            'spine_angle': '±5°',
+                            'right_knee_angle': '170°-175°',
+                            'left_knee_angle': '170°-175°',
+                            'shoulder_angle_back': '±3°',
+                            'left_hip_angle': '±3°',
+                            'right_hip_angle': '±3°'
+                        };
+                        
+                        const angleLabels = {
+                            'shoulder_angle': '肩膀角度',
+                            'hip_angle': '髋部角度',
+                            'spine_angle': '脊柱角度',
+                            'right_knee_angle': '右膝角度',
+                            'left_knee_angle': '左膝角度',
+                            'shoulder_angle_back': '后视肩膀角度',
+                            'left_hip_angle': '左侧髋部角度',
+                            'right_hip_angle': '右侧髋部角度'
+                        };
+                        
+                        for (const [key, value] of Object.entries(data.angles)) {
+                            const tr = document.createElement('tr');
+                            const label = angleLabels[key] || key;
+                            const normalRange = normalRanges[key] || '未指定';
+                            
+                            tr.innerHTML = `
+                                <td>${label}</td>
+                                <td>${value.toFixed(2)}°</td>
+                                <td>${normalRange}</td>
+                            `;
+                            anglesTable.appendChild(tr);
+                        }
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td colspan="3" class="text-center">无角度数据</td>';
+                        anglesTable.appendChild(tr);
+                    }
+                    
+                    // 填充测量数据
+                    const measurementsTable = document.getElementById('measurements-table');
+                    measurementsTable.innerHTML = '';
+                    
+                    if (data.measurements && Object.keys(data.measurements).length > 0) {
+                        const normalRanges = {
+                            'shoulder_height_diff': '<3%',
+                            'head_horizontal_offset': '<3%',
+                            'hip_height_diff': '<2%',
+                            'shoulder_height_diff_back': '<3%',
+                            'knee_distance': '与髋距离匹配',
+                            'ankle_distance': '与髋距离匹配',
+                            'hip_distance': '标准值',
+                            'shoulder_height_diff_px': '视相对高度而定'
+                        };
+                        
+                        const measurementLabels = {
+                            'shoulder_height_diff': '肩高差异比例',
+                            'head_horizontal_offset': '头部水平偏移',
+                            'hip_height_diff': '髋高差异比例',
+                            'shoulder_height_diff_back': '后视肩高差异',
+                            'knee_distance': '膝关节间距',
+                            'ankle_distance': '踝关节间距',
+                            'hip_distance': '髋关节间距',
+                            'shoulder_height_diff_px': '肩高差异(像素)'
+                        };
+                        
+                        for (const [key, value] of Object.entries(data.measurements)) {
+                            const tr = document.createElement('tr');
+                            const label = measurementLabels[key] || key;
+                            const normalRange = normalRanges[key] || '未指定';
+                            
+                            // 特殊处理不同单位的数据
+                            let displayValue = value;
+                            if (key.includes('diff') && !key.includes('px')) {
+                                displayValue = (value * 100).toFixed(1) + '%';
+                            } else if (key.includes('offset')) {
+                                displayValue = (value * 100).toFixed(1) + '%';
+                            } else {
+                                displayValue = value.toFixed(2);
+                            }
+                            
+                            tr.innerHTML = `
+                                <td>${label}</td>
+                                <td>${displayValue}</td>
+                                <td>${normalRange}</td>
+                            `;
+                            measurementsTable.appendChild(tr);
+                        }
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td colspan="3" class="text-center">无测量数据</td>';
+                        measurementsTable.appendChild(tr);
+                    }
+                    
+                    // 处理临床评估数据
+                    const clinicalContainer = document.getElementById('clinical-assessment-container');
+                    clinicalContainer.innerHTML = '';
+                    
+                    if (data.assessment) {
+                        let hasClinicialData = false;
+                        
+                        // 先显示综合评估数据（如果有）
+                        if (data.assessment.comprehensive && data.assessment.comprehensive.clinical_assessment) {
+                            hasClinicialData = true;
+                            
+                            const comprehensiveTitle = document.createElement('div');
+                            comprehensiveTitle.className = 'alert alert-primary mt-3 mb-3';
+                            comprehensiveTitle.innerHTML = '<h5 class="mb-0"><i class="fas fa-certificate"></i> 综合多视图评估数据（高可信度）</h5>';
+                            clinicalContainer.appendChild(comprehensiveTitle);
+                            
+                            // 创建卡片列表来显示综合临床评估
+                            const assessmentList = document.createElement('div');
+                            assessmentList.className = 'row';
+                            
+                            for (const [assessKey, assessData] of Object.entries(data.assessment.comprehensive.clinical_assessment)) {
+                                const assessCard = document.createElement('div');
+                                assessCard.className = 'col-md-6 mb-3';
+                                
+                                // 格式化评估名称
+                                const assessLabels = {
+                                    'confirmed_shoulder_asymmetry': '确认的肩部不对称',
+                                    'confirmed_forward_head_posture': '确认的头部前倾',
+                                    'body_asymmetry': '身体结构不对称',
+                                    'sagittal_balance': '矢状面平衡'
+                                };
+                                
+                                const assessName = assessLabels[assessKey] || assessKey;
+                                
+                                // 构建高亮的卡片内容
+                                let cardContent = `
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">${assessName}</h6>
+                                    </div>
+                                    <div class="card-body">
+                                `;
+                                
+                                // 根据评估数据类型构建不同的内容
+                                if (typeof assessData === 'object') {
+                                    for (const [dataKey, dataValue] of Object.entries(assessData)) {
+                                        // 格式化标签
+                                        const labelMap = {
+                                            'finding': '发现',
+                                            'value': '测量值',
+                                            'deviation': '偏差',
+                                            'confirmation': '确认方法',
+                                            'normal_range': '正常范围',
+                                            'standard': '临床标准',
+                                            'interpretation': '解释',
+                                            'clinical_significance': '临床重要性',
+                                            'biomechanical_impact': '生物力学影响',
+                                            'potential_causes': '可能原因',
+                                            'functional_impact': '功能性影响',
+                                            'severity': '严重程度',
+                                            'measurement': '测量结果',
+                                            'confidence': '置信度',
+                                            'reliability': '可靠性',
+                                            'asymmetry_score': '不对称评分',
+                                            'imbalance_score': '不平衡评分',
+                                            'forward_offset': '前倾偏移',
+                                            'contributing_factors': '贡献因素'
+                                        };
+                                        
+                                        const label = labelMap[dataKey] || dataKey;
+                                        
+                                        // 只显示有值的字段
+                                        if (dataValue && dataValue !== '') {
+                                            // 特殊处理贡献因素数组
+                                            if (dataKey === 'contributing_factors' && Array.isArray(dataValue)) {
+                                                cardContent += `<p><strong>${label}:</strong> ${dataValue.join(', ')}</p>`;
+                                            } else {
+                                                cardContent += `<p><strong>${label}:</strong> ${dataValue}</p>`;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // 简单数据类型
+                                    cardContent += `<p>${assessData}</p>`;
+                                }
+                                
+                                cardContent += `
+                                    </div>
+                                </div>`;
+                                
+                                assessCard.innerHTML = cardContent;
+                                assessmentList.appendChild(assessCard);
+                            }
+                            
+                            clinicalContainer.appendChild(assessmentList);
+                            
+                            // 添加分隔线
+                            if (Object.keys(data.assessment).length > 1) {
+                                const divider = document.createElement('hr');
+                                divider.className = 'mt-3 mb-3';
+                                clinicalContainer.appendChild(divider);
+                                
+                                const singleViewTitle = document.createElement('div');
+                                singleViewTitle.className = 'alert alert-secondary mt-3 mb-3';
+                                singleViewTitle.innerHTML = '<h5 class="mb-0"><i class="fas fa-image"></i> 单视图分析数据</h5>';
+                                clinicalContainer.appendChild(singleViewTitle);
+                            }
+                        }
+                        
+                        // 遍历每个视图的评估数据
+                        for (const [viewName, viewData] of Object.entries(data.assessment)) {
+                            // 跳过综合评估数据，因为已经单独处理
+                            if (viewName === 'comprehensive') continue;
+                            
+                            if (viewData.clinical_assessment && Object.keys(viewData.clinical_assessment).length > 0) {
+                                hasClinicialData = true;
+                                
+                                // 视图名称转换
+                                const viewLabels = {
+                                    'front': '正面视图',
+                                    'back': '背面视图',
+                                    'side': '侧面视图',
+                                    'left_side': '左侧视图',
+                                    'right_side': '右侧视图'
+                                };
+                                
+                                const viewTitle = document.createElement('h5');
+                                viewTitle.className = 'mt-3 mb-2';
+                                viewTitle.textContent = viewLabels[viewName] || viewName;
+                                clinicalContainer.appendChild(viewTitle);
+                                
+                                // 创建卡片列表来显示临床评估
+                                const assessmentList = document.createElement('div');
+                                assessmentList.className = 'row';
+                                
+                                for (const [assessKey, assessData] of Object.entries(viewData.clinical_assessment)) {
+                                    const assessCard = document.createElement('div');
+                                    assessCard.className = 'col-md-6 mb-3';
+                                    
+                                    // 格式化评估名称
+                                    const assessLabels = {
+                                        'shoulder_asymmetry': '肩部不对称',
+                                        'shoulder_angle': '肩部水平角度',
+                                        'head_alignment': '头部对齐情况',
+                                        'pelvic_tilt': '骨盆倾斜',
+                                        'hip_angle': '髋部角度',
+                                        'q_angle': 'Q角(股四头肌角)',
+                                        'knee_alignment': '膝关节对齐',
+                                        'scoliosis': '脊柱侧弯',
+                                        'scapular_position': '肩胛骨位置'
+                                    };
+                                    
+                                    const assessName = assessLabels[assessKey] || assessKey;
+                                    
+                                    // 构建卡片内容
+                                    let cardContent = `
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">${assessName}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                    `;
+                                    
+                                    // 根据评估数据类型构建不同的内容
+                                    if (typeof assessData === 'object') {
+                                        // 检查是否存在Q角特殊结构
+                                        if (assessKey === 'q_angle' && assessData.right && assessData.left) {
+                                            cardContent += `
+                                                <p><strong>右腿:</strong> ${assessData.right.value} (${assessData.right.interpretation})</p>
+                                                <p><strong>左腿:</strong> ${assessData.left.value} (${assessData.left.interpretation})</p>
+                                                <p><strong>正常范围:</strong> ${assessData.right.normal_range}</p>
+                                                <p><strong>临床意义:</strong> ${assessData.clinical_significance}</p>
+                                            `;
+                                        } else {
+                                            // 常规临床评估数据
+                                            for (const [dataKey, dataValue] of Object.entries(assessData)) {
+                                                // 格式化标签
+                                                const labelMap = {
+                                                    'finding': '发现',
+                                                    'value': '测量值',
+                                                    'normal_range': '正常范围',
+                                                    'interpretation': '解释',
+                                                    'deviation': '偏差',
+                                                    'clinical_significance': '临床重要性',
+                                                    'biomechanical_impact': '生物力学影响',
+                                                    'potential_causes': '可能原因',
+                                                    'functional_impact': '功能性影响',
+                                                    'severity': '严重程度',
+                                                    'measurement': '测量结果',
+                                                    'standard': '临床标准',
+                                                    'estimated_cobb_angle': '估计Cobb角',
+                                                    'classification': '分级',
+                                                    'clinical_standard': '临床标准',
+                                                    'recommendation': '建议',
+                                                    'width_ratio': '宽度比',
+                                                    'angle': '角度'
+                                                };
+                                                
+                                                const label = labelMap[dataKey] || dataKey;
+                                                
+                                                // 只显示有值的字段
+                                                if (dataValue && dataValue !== '') {
+                                                    cardContent += `<p><strong>${label}:</strong> ${dataValue}</p>`;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // 简单数据类型
+                                        cardContent += `<p>${assessData}</p>`;
+                                    }
+                                    
+                                    cardContent += `
+                                        </div>
+                                    </div>`;
+                                    
+                                    assessCard.innerHTML = cardContent;
+                                    assessmentList.appendChild(assessCard);
+                                }
+                                
+                                clinicalContainer.appendChild(assessmentList);
+                            }
+                        }
+                        
+                        if (!hasClinicialData) {
+                            clinicalContainer.innerHTML = '<p class="text-center">无临床评估数据</p>';
+                        }
+                    } else {
+                        clinicalContainer.innerHTML = '<p class="text-center">无临床评估数据</p>';
+                    }
+                    
+                    // 填充改善建议
+                    const recommendationsContent = document.getElementById('recommendations-content');
+                    if (data.recommendations) {
+                        recommendationsContent.innerHTML = `<p>${data.recommendations}</p>`;
+                        
+                        // 根据问题生成建议
+                        if (data.posture_issues && data.posture_issues.length > 0) {
+                            const recommendationsList = document.createElement('ul');
+                            recommendationsList.className = 'list-group mt-3';
+                            
+                            // 对应不同问题的改善建议
+                            const recommendationsMap = {
+                                '右侧高肩': '进行左侧肩部力量训练，注意工作和学习姿势，避免长时间倾斜。',
+                                '左侧高肩': '进行右侧肩部力量训练，注意工作和学习姿势，避免长时间倾斜。',
+                                '肩膀倾斜': '定期进行肩部平衡训练，加强薄弱侧肌肉力量，改善工作姿势。',
+                                '头部右倾': '加强颈部左侧肌肉训练，定期进行颈椎牵引和拉伸，注意日常头部姿势。',
+                                '头部左倾': '加强颈部右侧肌肉训练，定期进行颈椎牵引和拉伸，注意日常头部姿势。',
+                                '盆骨倾斜': '加强核心肌群训练，平衡髋部肌肉力量，定期进行骨盆矫正练习。',
+                                '右膝关节弯曲': '加强右腿股四头肌训练，进行膝关节伸展练习，避免长时间站立。',
+                                '左膝关节弯曲': '加强左腿股四头肌训练，进行膝关节伸展练习，避免长时间站立。',
+                                'X型腿': '进行股外侧肌训练，加强内侧支撑，穿着合适的鞋垫或进行步态矫正。',
+                                'O型腿': '进行内收肌群训练，避免过度外展姿势，咨询物理治疗师进行专业评估。',
+                                '脊柱侧弯': '进行针对性的脊柱矫正练习，加强脊柱两侧肌肉平衡，定期进行牵引治疗。'
+                            };
+                            
+                            data.posture_issues.forEach(issue => {
+                                const recommendation = recommendationsMap[issue] || '建议咨询专业医生或理疗师进行针对性评估和治疗。';
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item';
+                                li.innerHTML = `<strong>${issue}:</strong> ${recommendation}`;
+                                recommendationsList.appendChild(li);
+                            });
+                            
+                            recommendationsContent.appendChild(recommendationsList);
+                        }
+                    } else {
+                        recommendationsContent.innerHTML = '<p>未生成改善建议。</p>';
+                    }
+                    
+                    // 初始化标签页
+                    initTabs();
+                    
+                    // 显示"总体评估"标签页
+                    const summaryTab = document.getElementById('summary-tab');
+                    const bsTab = new bootstrap.Tab(summaryTab);
+                    bsTab.show();
+                    
+                } else {
+                    // 处理错误
+                    alert(`分析失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.add('d-none');
+                alert('请求失败，请稍后重试: ' + error.message);
+            });
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}脊柱侧弯分析系统{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    {% include 'nav.html' %}
+    
+    <main class="py-3">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted">© 2023 脊柱侧弯分析系统</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted">AI辅助脊柱侧弯检测与康复平台</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

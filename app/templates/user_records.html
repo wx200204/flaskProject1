@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+
+{% block title %}用户记录 - 脊柱侧弯分析系统{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center">用户记录</h1>
+            <p class="text-center text-muted">查看您的分析记录和康复训练会话</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="recordTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="true">分析记录</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="rehab-tab" data-bs-toggle="tab" data-bs-target="#rehab" type="button" role="tab" aria-controls="rehab" aria-selected="false">康复训练</button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="recordTabsContent">
+                <div class="tab-pane fade show active" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
+                    <div class="row" id="analysisRecords">
+                        <!-- 分析记录将在这里动态加载 -->
+                        <div class="col-12 no-records">                            <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                            <p>暂无分析记录</p>
+                            <a href="{{ url_for('main.upload') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-upload me-1"></i>上传图像进行分析
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="rehab" role="tabpanel" aria-labelledby="rehab-tab">
+                    <div class="row" id="rehabSessions">
+                        <!-- 康复会话将在这里动态加载 -->
+                        <div class="col-12 no-records">
+                            <i class="fas fa-heartbeat fa-3x mb-3 text-muted"></i>
+                            <p>暂无康复训练会话</p>
+                            <a href="{{ url_for('main.rehabilitation') }}" class="btn btn-success mt-2">
+                                <i class="fas fa-play me-1"></i>开始康复训练
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .record-card {
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    .record-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .tab-content {
+        padding: 20px 0;
+    }
+    .no-records {
+        padding: 50px;
+        text-align: center;
+        color: #6c757d;
+    }
+    .record-image {
+        max-height: 200px;
+        object-fit: contain;
+    }
+</style>
+
+<script>
+    // 用户ID（实际使用时应从登录会话获取）
+    const userId = localStorage.getItem('userId') || '1';
+    
+    // 页面加载完成后获取数据
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchAnalysisRecords();
+        fetchRehabSessions();
+    });
+    
+    // 获取分析记录
+    function fetchAnalysisRecords() {
+        // 显示加载动画
+        document.getElementById('analysisRecords').innerHTML = `
+            <div class="col-12 text-center py-5">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-3 text-muted">正在加载分析记录...</p>
+            </div>
+        `;
+        
+        fetch(`/api/v1/user/records?user_id=${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP错误 ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    displayAnalysisRecords(data.data.records);
+                } else {
+                    showError('analysisRecords', '获取分析记录失败: ' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('获取分析记录错误:', error);
+                showError('analysisRecords', `获取分析记录时发生错误: ${error.message}`);
+            });
+    }
+    
+    // 获取康复会话
+    function fetchRehabSessions() {
+        // 显示加载动画
+        document.getElementById('rehabSessions').innerHTML = `
+            <div class="col-12 text-center py-5">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-3 text-muted">正在加载康复会话...</p>
+            </div>
+        `;
+        
+        fetch(`/api/v1/user/rehab_sessions?user_id=${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP错误 ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    displayRehabSessions(data.data.sessions);
+                } else {
+                    showError('rehabSessions', '获取康复会话失败: ' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('获取康复会话错误:', error);
+                showError('rehabSessions', `获取康复会话时发生错误: ${error.message}`);
+            });
+    }
+    
+    // 显示分析记录
+    function displayAnalysisRecords(records) {
+        const container = document.getElementById('analysisRecords');
+        
+        if (!records || records.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 no-records">
+                    <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                    <p>暂无分析记录</p>
+                    <a href="{{ url_for('main.upload') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-upload me-1"></i>上传图像进行分析
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        records.forEach(record => {
+            const severityClass = getSeverityClass(record.cobb_angle);
+            const severityText = getSeverityText(record.cobb_angle);
+            
+            html += `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card record-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-x-ray me-2"></i>分析记录 #${record.id}</span>
+                            <span class="badge ${severityClass}">${severityText}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="display-6 me-2">${record.cobb_angle ? record.cobb_angle.toFixed(1) + '°' : '未测量'}</div>
+                                <div class="text-muted small">Cobb角度</div>
+                            </div>
+                            <p class="card-text"><i class="far fa-clock me-2"></i>${formatDate(record.created_at)}</p>
+                            <p class="card-text"><i class="fas fa-tag me-2"></i>${record.model_id || '默认模型'}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="#" class="btn btn-sm btn-primary w-100" onclick="viewAnalysisDetails(${record.id})">
+                                <i class="fas fa-search me-1"></i>查看详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    // 显示康复会话
+    function displayRehabSessions(sessions) {
+        const container = document.getElementById('rehabSessions');
+        
+        if (!sessions || sessions.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 no-records">
+                    <i class="fas fa-heartbeat fa-3x mb-3 text-muted"></i>
+                    <p>暂无康复训练会话</p>
+                    <a href="{{ url_for('main.rehabilitation') }}" class="btn btn-success mt-2">
+                        <i class="fas fa-play me-1"></i>开始康复训练
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        sessions.forEach(session => {
+            const status = session.status === 'completed' ? 
+                '<span class="badge bg-success"><i class="fas fa-check me-1"></i>已完成</span>' : 
+                '<span class="badge bg-warning text-dark"><i class="fas fa-hourglass-half me-1"></i>进行中</span>';
+            
+            const sessionDate = new Date(session.start_time).toLocaleDateString();
+            const exerciseCount = session.exercises ? session.exercises.length : 0;
+            
+            html += `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card record-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-notes-medical me-2"></i>康复会话</span>
+                            ${status}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text"><i class="far fa-calendar-alt me-2"></i>${formatDate(session.start_time)}</p>
+                            <p class="card-text"><i class="fas fa-dumbbell me-2"></i>${exerciseCount} 个训练项目</p>
+                            <p class="card-text"><i class="fas fa-tag me-2"></i>方案: ${session.plan_id || '默认方案'}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="#" class="btn btn-sm btn-success w-100" onclick="viewSessionDetails('${session.session_id}')">
+                                <i class="fas fa-list-alt me-1"></i>查看详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    // 根据Cobb角度获取严重程度类名
+    function getSeverityClass(cobbAngle) {
+        if (!cobbAngle) return 'bg-secondary';
+        if (cobbAngle < 20) return 'bg-success';
+        if (cobbAngle < 40) return 'bg-warning text-dark';
+        return 'bg-danger';
+    }
+    
+    // 根据Cobb角度获取严重程度文本
+    function getSeverityText(cobbAngle) {
+        if (!cobbAngle) return '未测量';
+        if (cobbAngle < 20) return '轻度';
+        if (cobbAngle < 40) return '中度';
+        return '重度';
+    }
+    
+    // 格式化日期
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    // 显示错误信息
+    function showError(containerId, message) {
+        document.getElementById(containerId).innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    ${message}
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-3" onclick="retryFetch('${containerId}')">重试</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // 重试获取数据
+    function retryFetch(containerId) {
+        if (containerId === 'analysisRecords') {
+            fetchAnalysisRecords();
+        } else if (containerId === 'rehabSessions') {
+            fetchRehabSessions();
+        }
+    }
+    
+    // 查看分析详情（示例函数）
+    function viewAnalysisDetails(recordId) {
+        alert(`查看分析记录 #${recordId} 的详情`);
+        // 实际应用中应该跳转到详情页面或打开模态框
+    }
+    
+    // 查看会话详情（示例函数）
+    function viewSessionDetails(sessionId) {
+        alert(`查看会话 ${sessionId} 的详情`);
+        // 实际应用中应该跳转到详情页面或打开模态框
+    }
+</script>
+{% endblock %} 

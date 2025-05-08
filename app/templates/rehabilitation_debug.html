@@ -1,0 +1,462 @@
+{% extends "layout.html" %}
+
+{% block title %}康复指导(调试版){% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<style>
+    /* 全局样式优化 */
+    :root {
+        --primary-color: #4a6fa5;
+        --secondary-color: #5b9bd5;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+    }
+    
+    /* 摄像头容器样式 */
+    .camera-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        min-height: 400px;
+        background-color: #222;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .camera-container:hover {
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    
+    #userVideo, #poseCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    #poseCanvas {
+        z-index: 2;
+    }
+    
+    #userVideo {
+        z-index: 1;
+    }
+    
+    .camera-hint {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 18px;
+        border-radius: 30px;
+        z-index: 3;
+        font-size: 15px;
+        max-width: 90%;
+        text-align: center;
+        transition: all 0.5s ease;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* 卡片样式优化 */
+    .control-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+    }
+    
+    /* 通知样式 */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 1000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+        display: none;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* 调试容器 */
+    #debugContainer {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 400px;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #00ff00;
+        font-family: monospace;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 9999;
+        font-size: 12px;
+    }
+    
+    .debug-entry {
+        margin-bottom: 5px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+    }
+    
+    .debug-error {
+        color: #ff5555;
+    }
+    
+    .debug-warning {
+        color: #ffff55;
+    }
+    
+    .debug-success {
+        color: #55ff55;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">康复指导 <span class="badge bg-danger">调试版</span></h1>
+            <p class="lead mb-4">实时智能姿势分析与康复指导系统，帮助您改善脊柱健康</p>
+        </div>
+    </div>
+    
+    <!-- 通知元素 -->
+    <div id="notificationContainer" class="notification">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <i id="notificationIcon" class="fas fa-info-circle"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div id="notificationMessage"></div>
+            </div>
+            <div>
+                <button type="button" class="btn-close" id="closeNotificationBtn"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 调试控制 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card control-card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">调试控制</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <button id="testApiBtn" class="btn btn-outline-primary w-100">测试API连接</button>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="testCameraBtn" class="btn btn-outline-primary w-100">测试摄像头</button>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="clearDebugBtn" class="btn btn-outline-secondary w-100">清除调试信息</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 其余内容 -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 康复指导面板 -->
+            <div class="card control-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">康复训练</h5>
+                    <button class="btn btn-sm btn-light" id="helpBtn" title="显示帮助"><i class="fas fa-question-circle"></i></button>
+                </div>
+                <div class="card-body">
+                    <!-- 摄像头和姿势检测区域 -->
+                    <div class="camera-container">
+                        <video id="userVideo" autoplay playsinline muted style="display: block; width: 100%; height: 100%; object-fit: cover;"></video>
+                        <canvas id="poseCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;"></canvas>
+                        <div id="cameraHint" class="camera-hint">请点击"开始康复指导"开始训练</div>
+                        <div id="notification" class="alert" role="alert" style="display: none;">
+                            <span id="notificationText"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 康复模板选择 -->
+                    <div class="mb-3">
+                        <label for="templateSelector" class="form-label fw-bold">康复模板:</label>
+                        <select id="templateSelector" class="form-select">
+                            <option value="标准直立姿势" data-description="保持脊柱自然垂直，肩膀放松平衡，目视前方">标准直立姿势</option>
+                            <option value="侧弯矫正基础姿势" data-description="针对轻度脊柱侧弯，通过调整肩部和髋部位置来改善侧弯">侧弯矫正基础姿势</option>
+                            <option value="胸椎后凸矫正姿势" data-description="针对含胸驼背，注重拉伸胸肌，增强背部肌肉力量">胸椎后凸矫正姿势</option>
+                            <option value="腰椎前凸矫正姿势" data-description="针对腰椎过度前凸，着重收紧腹肌，调整骨盆位置">腰椎前凸矫正姿势</option>
+                        </select>
+                        <p id="templateDescription" class="text-muted mt-2 small">保持脊柱自然垂直，肩膀放松平衡，目视前方</p>
+                    </div>
+                    
+                    <!-- 状态消息 -->
+                    <div class="status-container mb-3 p-2 bg-light rounded">
+                        <div id="statusMessage" class="text-center">请点击"开始康复指导"按钮</div>
+                    </div>
+                    
+                    <!-- 启动按钮 -->
+                    <div class="d-grid">
+                        <button id="startSession" class="btn btn-primary btn-lg">开始康复指导</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- 康复模板库 (新增) -->
+            <div class="card control-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">康复模板库</h5>
+                </div>
+                <div class="card-body">
+                    <div class="template-list" id="templateList">
+                        <!-- 模板卡片 -->
+                        <div class="template-card selected" data-template="standard_posture">
+                            <div class="template-body">
+                                <h6>标准直立姿势</h6>
+                                <p class="small text-muted mb-1">保持脊柱自然垂直，肩膀放松平衡，目视前方</p>
+                                <span class="template-difficulty difficulty-easy">初级</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 调试容器 -->
+    <div id="debugContainer">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-white mb-0">调试输出</h6>
+            <button class="btn btn-sm btn-dark" id="toggleDebugBtn">隐藏</button>
+        </div>
+        <div id="debugOutput"></div>
+    </div>
+</div>
+
+<!-- 错误消息弹窗 -->
+<div id="errorMessageContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 9999; max-width: 80%;">
+    <div class="error-header">提示</div>
+    <div id="errorMessageText" class="mb-3">错误信息将显示在这里</div>
+    <div class="text-end">
+        <button id="errorRetryBtn" class="btn btn-primary btn-sm me-2">重试</button>
+        <button id="errorCloseBtn" class="btn btn-secondary btn-sm">关闭</button>
+    </div>
+</div>
+
+<!-- 帮助对话框 -->
+<div id="helpDialog" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9998; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 10px; max-width: 500px; width: 100%; padding: 20px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">康复指导帮助</h5>
+            <button class="btn-close" id="closeHelpBtn"></button>
+        </div>
+        <div>
+            <h6>使用说明</h6>
+            <ul>
+                <li>确保摄像头已连接并授权</li>
+                <li>点击"开始康复指导"按钮开始</li>
+                <li>按照提示完成动作</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- 使用Flask的url_for引用各个JS文件 -->
+<script src="{{ url_for('static', filename='js/rehabilitation_core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rehabilitation_ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rehabilitation_main.js') }}"></script>
+
+<script>
+// 增强调试功能
+(function() {
+    // 覆盖原生console方法，同时输出到调试容器
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info
+    };
+    
+    const debugOutput = document.getElementById('debugOutput');
+    
+    function addDebugEntry(type, args) {
+        const entry = document.createElement('div');
+        entry.className = `debug-entry debug-${type}`;
+        
+        // 格式化日期时间
+        const now = new Date();
+        const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        
+        // 将参数转换为字符串
+        const message = Array.from(args).map(arg => {
+            if (typeof arg === 'object') {
+                try {
+                    return JSON.stringify(arg);
+                } catch (e) {
+                    return String(arg);
+                }
+            }
+            return String(arg);
+        }).join(' ');
+        
+        entry.innerHTML = `<span class="debug-time">[${timestamp}]</span> <span class="debug-message">${message}</span>`;
+        
+        // 添加到调试容器
+        debugOutput.appendChild(entry);
+        
+        // 自动滚动到底部
+        debugOutput.scrollTop = debugOutput.scrollHeight;
+    }
+    
+    // 覆盖console方法
+    console.log = function() {
+        addDebugEntry('log', arguments);
+        originalConsole.log.apply(console, arguments);
+    };
+    
+    console.error = function() {
+        addDebugEntry('error', arguments);
+        originalConsole.error.apply(console, arguments);
+    };
+    
+    console.warn = function() {
+        addDebugEntry('warning', arguments);
+        originalConsole.warn.apply(console, arguments);
+    };
+    
+    console.info = function() {
+        addDebugEntry('success', arguments);
+        originalConsole.info.apply(console, arguments);
+    };
+    
+    // 切换调试容器显示
+    document.getElementById('toggleDebugBtn').addEventListener('click', function() {
+        const debugContainer = document.getElementById('debugContainer');
+        if (debugContainer.style.height === '30px' || debugContainer.style.height === '') {
+            debugContainer.style.height = '300px';
+            this.textContent = '隐藏';
+        } else {
+            debugContainer.style.height = '30px';
+            this.textContent = '显示';
+        }
+    });
+    
+    // 清除调试信息
+    document.getElementById('clearDebugBtn').addEventListener('click', function() {
+        debugOutput.innerHTML = '';
+        console.info('调试日志已清除');
+    });
+    
+    // 测试API连接
+    document.getElementById('testApiBtn').addEventListener('click', function() {
+        console.log('测试API连接...');
+        
+        fetch('{{ url_for("rehabilitation.get_templates") }}')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                console.info('API连接正常');
+                return response.json();
+            })
+            .then(data => {
+                console.log('API返回数据:', data);
+            })
+            .catch(error => {
+                console.error('API连接失败:', error);
+            });
+    });
+    
+    // 测试摄像头
+    document.getElementById('testCameraBtn').addEventListener('click', async function() {
+        console.log('测试摄像头...');
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const userVideo = document.getElementById('userVideo');
+            
+            if (userVideo) {
+                userVideo.srcObject = stream;
+                console.info('摄像头连接成功');
+                
+                // 30秒后自动停止
+                setTimeout(() => {
+                    stream.getTracks().forEach(track => track.stop());
+                    userVideo.srcObject = null;
+                    console.log('摄像头测试结束');
+                }, 30000);
+            } else {
+                console.error('找不到视频元素');
+            }
+        } catch (error) {
+            console.error('摄像头测试失败:', error);
+        }
+    });
+    
+    // 初始日志
+    console.info('调试页面已加载');
+    console.log('页面URL:', window.location.href);
+    console.log('浏览器:', navigator.userAgent);
+    
+    // 页面加载完成事件
+    window.addEventListener('load', function() {
+        console.log('页面加载完成');
+        
+        // 打印所有JS模块是否存在
+        console.log('RehabCore可用:', typeof window.RehabCore !== 'undefined');
+        console.log('RehabUI可用:', typeof window.RehabUI !== 'undefined');
+        
+        if (window.RehabCore && window.RehabUI) {
+            console.info('所有康复模块已正确加载');
+        } else {
+            console.error('康复模块加载失败');
+        }
+    });
+    
+    // 增强按钮点击事件，确保有视觉反馈
+    document.getElementById('startSession').addEventListener('click', function() {
+        console.log('康复指导按钮被点击');
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        
+        // 10秒后恢复按钮状态（如果没有被其他代码修改）
+        setTimeout(() => {
+            if (this.innerHTML.includes('处理中')) {
+                this.innerHTML = '开始康复指导';
+                console.warn('按钮点击事件处理超时，可能存在问题');
+            }
+        }, 10000);
+    });
+})();
+</script>
+{% endblock %} 

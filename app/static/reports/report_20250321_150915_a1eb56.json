@@ -1,0 +1,9 @@
+{
+  "id": "report_20250321_150915_a1eb56",
+  "timestamp": "2025-03-21T15:09:15.577406",
+  "cobb_angle": 11.618712984188612,
+  "confidence": 0.6600000000000001,
+  "severity": "\u8f7b\u5ea6",
+  "original_image": "/static/reports/report_20250321_150915_a1eb56_original.jpg",
+  "result_image": "/static/reports/report_20250321_150915_a1eb56_result.jpg"
+}

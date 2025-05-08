@@ -1,0 +1,285 @@
+{% extends "layout.html" %}
+
+{% block title %}脊柱侧弯分析 - 上传图像{% endblock %}
+
+{% block styles %}
+<style>
+    .upload-section {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 30px;
+        border: 2px dashed #3a7bd5;
+        border-radius: 12px;
+        background-color: rgba(58, 123, 213, 0.05);
+        transition: all 0.3s ease;
+    }
+    .upload-section:hover {
+        background-color: rgba(58, 123, 213, 0.1);
+        border-color: #2a6ac5;
+    }
+    .image-preview {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        gap: 20px;
+    }
+    .preview-box {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    .preview-box:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .preview-box img {
+        max-width: 100%;
+        max-height: 500px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .results {
+        margin-top: 30px;
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .loading {
+        display: none;
+        text-align: center;
+        margin: 30px 0;
+    }
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(58, 123, 213, 0.2);
+        border-radius: 50%;
+        border-top: 5px solid #3a7bd5;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .error {
+        color: #dc3545;
+        margin: 15px 0;
+        padding: 10px;
+        background-color: rgba(220, 53, 69, 0.1);
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    .upload-btn {
+        background-color: #3a7bd5;
+        border-color: #3a7bd5;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .upload-btn:hover {
+        background-color: #2a6ac5;
+        border-color: #2a6ac5;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center">脊柱侧弯分析</h1>
+            <p class="text-center text-muted">上传X光图像进行脊柱侧弯Cobb角分析</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="upload-section">
+                        <form id="uploadForm">
+                            <input type="file" id="imageInput" accept="image/*" required class="form-control mb-3">
+                            <button type="submit" class="btn btn-primary">开始分析</button>
+                        </form>
+                    </div>
+
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">正在分析图像，请稍候...</p>
+                    </div>
+
+                    <div class="image-preview">
+                        <div class="preview-box">
+                            <h3>原始图像</h3>
+                            <img id="originalImage" src="" alt="原始图像" style="display: none;">
+                        </div>
+                        <div class="preview-box">
+                            <h3>分析结果</h3>
+                            <img id="processedImage" src="" alt="处理后的图像" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="results" id="results" style="display: none;">
+                        <h3>分析结果</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <p><strong>Cobb角度:</strong> <span id="cobbAngle">-</span></p>
+                                    <p><strong>置信度:</strong> <span id="confidence">-</span></p>
+                                    <p><strong>严重程度:</strong> <span id="severity">-</span></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-light">
+                                    <p><strong>分析时间:</strong> <span id="timestamp">-</span></p>
+                                    <p id="reportLink" style="display: none;"><strong>报告:</strong> <a href="#" id="reportUrl" target="_blank">查看报告</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="debug-container" id="debugContainer" style="display: none; margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                        <h3>图像处理调试视图</h3>
+                        <div class="debug-image">
+                            <img id="debugMontage" src="" alt="调试视图" style="max-width: 100%;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // 获取用户ID
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            // 如果未登录，提示用户登录
+            alert('请先登录后再上传图像');
+            window.location.href = "/";
+            return;
+        }
+        
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('请选择一个图像文件');
+            return;
+        }
+
+        // 显示加载提示
+        document.querySelector('.loading').style.display = 'block';
+        document.querySelector('.loading').innerHTML = `
+            <div class="loading-spinner"></div>
+            <p class="mt-2">正在分析图像，请稍候...</p>
+        `;
+        
+        // 创建FormData对象
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/v1/analyze', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-User-ID': userId  // 添加用户ID到请求头
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`服务器返回错误: ${response.status} ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                // 显示原始图像
+                const originalImage = document.getElementById('originalImage');
+                originalImage.src = 'data:image/jpeg;base64,' + result.original_image;
+                originalImage.style.display = 'block';
+                
+                // 显示处理后的图像
+                const processedImage = document.getElementById('processedImage');
+                processedImage.src = 'data:image/jpeg;base64,' + result.result_image;
+                processedImage.style.display = 'block';
+                
+                // 显示分析结果
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('cobbAngle').textContent = result.cobb_angle.toFixed(2) + '°';
+                document.getElementById('confidence').textContent = (result.confidence * 100).toFixed(2) + '%';
+                document.getElementById('severity').textContent = result.severity || '未知';
+                document.getElementById('timestamp').textContent = new Date(result.timestamp).toLocaleString();
+                
+                // 显示报告链接（如果存在）
+                if (result.report_url) {
+                    document.getElementById('reportLink').style.display = 'block';
+                    document.getElementById('reportUrl').href = result.report_url;
+                } else {
+                    document.getElementById('reportLink').style.display = 'none';
+                }
+                
+                // 显示调试视图
+                if (result.debug_montage) {
+                    document.getElementById('debugContainer').style.display = 'block';
+                    document.getElementById('debugMontage').src = 'data:image/jpeg;base64,' + result.debug_montage;
+                } else {
+                    document.getElementById('debugContainer').style.display = 'none';
+                }
+            } else {
+                // 显示错误信息
+                const errorMsg = result.message || '未知错误';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error mt-3';
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>分析失败: ${errorMsg}`;
+                document.querySelector('.upload-section').appendChild(errorDiv);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // 显示友好的错误提示
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error mt-3';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>发生错误:</strong> ${error.message || '请检查网络连接并重试'}
+                <p class="mt-2 small">如果问题持续存在，请尝试使用不同的图像或联系管理员。</p>
+            `;
+            document.querySelector('.upload-section').appendChild(errorDiv);
+        } finally {
+            // 隐藏加载提示
+            document.querySelector('.loading').style.display = 'none';
+        }
+    });
+
+    // 图像预览
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const originalImage = document.getElementById('originalImage');
+                originalImage.src = e.target.result;
+                originalImage.style.display = 'block';
+                
+                // 清除之前的处理结果
+                document.getElementById('processedImage').style.display = 'none';
+                document.getElementById('results').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %} 

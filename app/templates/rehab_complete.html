@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}康复训练完成{% endblock %}
+
+{% block styles %}
+<style>
+    .completion-container {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .header-icon {
+        font-size: 60px;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+    
+    .completion-title {
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .score-display {
+        font-size: 72px;
+        font-weight: bold;
+        color: #4a6bff;
+        margin: 20px 0;
+    }
+    
+    .stats-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+        margin-bottom: 15px;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-icon {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .stats-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stats-label {
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .feedback-box {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4a6bff;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+    
+    .btn-action {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 500;
+        margin: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="completion-container">
+    <div class="text-center">
+        <i class="fas fa-check-circle header-icon"></i>
+        <h1 class="completion-title">康复训练完成！</h1>
+        <p class="lead text-muted">恭喜您完成了今天的康复训练！以下是您的训练结果：</p>
+    </div>
+    
+    <div class="text-center">
+        <div class="score-display">
+            <span id="scoreDisplay">0</span>
+        </div>
+        <p class="text-muted">总得分</p>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock stats-icon text-primary"></i>
+                    <div class="stats-value" id="timeDisplay">0:00</div>
+                    <div class="stats-label">训练时长</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks stats-icon text-success"></i>
+                    <div class="stats-value" id="completionDisplay">0/0</div>
+                    <div class="stats-label">完成动作数</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line stats-icon text-info"></i>
+                    <div class="stats-value" id="accuracyDisplay">0%</div>
+                    <div class="stats-label">平均准确度</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="feedback-box">
+        <h5><i class="fas fa-comment-medical me-2"></i>训练反馈</h5>
+        <p id="feedbackText">正在加载训练反馈...</p>
+    </div>
+    
+    <div class="mt-4">
+        <h5>今日训练收获</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><i class="fas fa-angle-right me-2 text-success"></i>增强了核心肌肉群力量，改善脊柱稳定性</li>
+            <li class="list-group-item"><i class="fas fa-angle-right me-2 text-success"></i>提高了姿势感知能力，帮助正确维持脊柱姿态</li>
+            <li class="list-group-item"><i class="fas fa-angle-right me-2 text-success"></i>完成了定制化的康复训练计划，向康复目标迈进一步</li>
+        </ul>
+    </div>
+    
+    <div class="text-center mt-5">
+        <a href="{{ url_for('main.rehabilitation') }}" class="btn btn-primary btn-action">
+            <i class="fas fa-redo me-2"></i>再次训练
+        </a>
+        <a href="{{ url_for('main.user_records') }}" class="btn btn-outline-primary btn-action">
+            <i class="fas fa-history me-2"></i>查看训练记录
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取会话ID
+    const sessionId = window.location.pathname.split('/').pop();
+    
+    // 加载会话结果
+    fetchSessionResults(sessionId);
+    
+    // 获取会话结果数据
+    async function fetchSessionResults(sessionId) {
+        try {
+            const response = await fetch(`/api/v1/rehab/session/${sessionId}/result`);
+            const data = await response.json();
+            
+            if (data.code === 200) {
+                displayResults(data.data);
+            } else {
+                console.error('获取会话结果失败:', data.msg);
+                displayErrorInfo();
+            }
+        } catch (error) {
+            console.error('获取会话结果错误:', error);
+            displayErrorInfo();
+        }
+    }
+    
+    // 显示结果
+    function displayResults(resultData) {
+        // 更新分数显示
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        if (scoreDisplay) {
+            // 使用动画效果显示分数
+            animateNumber(scoreDisplay, 0, resultData.total_score, 1500);
+        }
+        
+        // 更新时间显示
+        const timeDisplay = document.getElementById('timeDisplay');
+        if (timeDisplay) {
+            const minutes = Math.floor(resultData.total_time / 60);
+            const seconds = resultData.total_time % 60;
+            timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 更新完成动作数
+        const completionDisplay = document.getElementById('completionDisplay');
+        if (completionDisplay) {
+            completionDisplay.textContent = `${resultData.completed_exercises}/${resultData.total_exercises}`;
+        }
+        
+        // 更新准确度
+        const accuracyDisplay = document.getElementById('accuracyDisplay');
+        if (accuracyDisplay) {
+            const accuracy = Math.round((resultData.total_score / (resultData.completed_exercises * 100)) * 100);
+            animateNumber(accuracyDisplay, 0, accuracy, 1500, '%');
+        }
+        
+        // 更新反馈文本
+        const feedbackText = document.getElementById('feedbackText');
+        if (feedbackText) {
+            feedbackText.textContent = resultData.feedback || '恭喜完成训练！继续坚持将帮助改善您的脊柱健康。';
+        }
+    }
+    
+    // 显示错误信息
+    function displayErrorInfo() {
+        document.getElementById('scoreDisplay').textContent = '- -';
+        document.getElementById('timeDisplay').textContent = '- -';
+        document.getElementById('completionDisplay').textContent = '- -';
+        document.getElementById('accuracyDisplay').textContent = '- -';
+        document.getElementById('feedbackText').textContent = '无法获取训练结果数据，但您已完成本次训练。继续坚持每日训练，将帮助改善您的脊柱健康。';
+    }
+    
+    // 数字动画函数
+    function animateNumber(element, start, end, duration, suffix = '') {
+        let startTime = null;
+        
+        function animation(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            
+            element.textContent = value + suffix;
+            
+            if (timeElapsed < duration) {
+                window.requestAnimationFrame(animation);
+            } else {
+                element.textContent = end + suffix;
+            }
+        }
+        
+        window.requestAnimationFrame(animation);
+    }
+});
+</script>
+{% endblock %} 

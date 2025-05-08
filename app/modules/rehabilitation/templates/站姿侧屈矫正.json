@@ -1,0 +1,10 @@
+{
+    "name": "站姿侧屈矫正",
+    "description": "站立姿势下的侧屈矫正动作",
+    "spine_angles": {
+        "lateral_deviation": 15,
+        "forward_tilt": 5,
+        "shoulder_balance": 5
+    },
+    "tolerance": 8
+}

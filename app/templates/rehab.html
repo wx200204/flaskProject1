@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脊柱康复指导</title>
+    <style>
+        body { 
+            font-family: 'Microsoft YaHei', sans-serif; 
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .video-container {
+            margin: 20px 0;
+        }
+        .video-feed {
+            width: 640px;
+            height: 480px;
+            border: 3px solid #3498db;
+            border-radius: 8px;
+        }
+        .controls button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>脊柱康复训练指导</h1>
+    
+    <div class="pose-info">
+        <h2>{{ pose_type|replace('_', ' ')|title }}</h2>
+        <p id="pose-description">请将身体调整至与屏幕中的指导轮廓一致，保持正确姿势</p>
+    </div>
+    
+    <div class="video-container">
+        <img src="{{ url_for('video_feed') }}" class="video-feed" alt="实时视频">
+    </div>
+    
+    <div class="controls">
+        <button onclick="changePose('spine_stretch')">脊柱伸展</button>
+        <button onclick="changePose('lateral_bend')">侧弯矫正</button>
+        <button onclick="changePose('pelvic_tilt')">骨盆倾斜</button>
+    </div>
+    
+    <script>
+        function changePose(pose) {
+            window.location.href = "/pose/rehab?pose_type=" + pose;
+        }
+        
+        // 定期更新状态
+        setInterval(function() {
+            fetch('/api/pose/current_status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pose-description').textContent = data.feedback || "请保持姿势";
+                })
+                .catch(error => console.error('获取状态失败:', error));
+        }, 1000);
+    </script>
+</body>
+</html> 

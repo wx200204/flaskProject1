@@ -1,0 +1,1406 @@
+{% extends "base.html" %}
+
+{% block title %}康复训练会话{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rehab.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .session-container {
+        display: flex;
+        flex-direction: column;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .session-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .session-header h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    
+    .session-header p {
+        color: #7f8c8d;
+    }
+    
+    .session-body {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .session-body {
+            flex-direction: column;
+        }
+    }
+    
+    .video-container {
+        flex: 3;
+        position: relative;
+        background-color: #f0f0f0;
+        border-radius: 10px;
+        overflow: hidden;
+        min-height: 480px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    #video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+    }
+    
+    #video-feedback {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 20;
+        font-weight: 500;
+    }
+    
+    #video-pose-guide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0.6;
+    }
+    
+    #video-element {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+    
+    .info-container {
+        flex: 2;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .exercise-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .exercise-description {
+        color: #666;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    
+    .exercise-instructions {
+        margin-bottom: 20px;
+    }
+    
+    .instruction-step {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        border-left: 3px solid #3498db;
+        transition: all 0.3s ease;
+    }
+    
+    .instruction-step.active {
+        background-color: #e3f2fd;
+        border-left: 3px solid #2ecc71;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .instruction-step.completed {
+        background-color: #f0fff0;
+        border-left: 3px solid #28a745;
+        opacity: 0.7;
+    }
+    
+    .step-number {
+        display: inline-block;
+        width: 25px;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+        background-color: #3498db;
+        color: white;
+        border-radius: 50%;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    .instruction-step.active .step-number {
+        background-color: #2ecc71;
+    }
+    
+    .instruction-step.completed .step-number {
+        background-color: #28a745;
+    }
+    
+    .progress-container {
+        margin-top: 20px;
+    }
+    
+    .progress-bar {
+        height: 10px;
+        background-color: #eee;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background-color: #2ecc71;
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+    
+    .exercise-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 20px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-success {
+        background-color: #2ecc71;
+        color: white;
+    }
+    
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .btn:hover {
+        opacity: 0.8;
+    }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .exercise-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-item {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .stat-icon {
+        font-size: 18px;
+        margin-bottom: 5px;
+        color: #3498db;
+    }
+    
+    .exercise-timer {
+        font-size: 36px;
+        text-align: center;
+        margin: 20px 0;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .camera-guide {
+        position: relative;
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        border-left: 4px solid #3498db;
+    }
+    
+    .match-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #e74c3c;
+        margin-right: 10px;
+        transition: background-color 0.5s ease;
+    }
+    
+    .match-indicator.matched {
+        background-color: #2ecc71;
+    }
+    
+    .target-zone {
+        position: absolute;
+        border: 2px dashed #2ecc71;
+        border-radius: 5px;
+        z-index: 15;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    /* Pose markers for different body parts */
+    .pose-marker {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: rgba(52, 152, 219, 0.7);
+        z-index: 15;
+        transform: translate(-50%, -50%);
+    }
+    
+    .pose-line {
+        position: absolute;
+        background-color: rgba(52, 152, 219, 0.5);
+        z-index: 14;
+        transform-origin: 0 0;
+    }
+    
+    .target-pose-marker {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: rgba(46, 204, 113, 0.7);
+        z-index: 13;
+        transform: translate(-50%, -50%);
+    }
+    
+    .pose-instruction {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 5px;
+        margin: 0 10px;
+        z-index: 25;
+        font-weight: bold;
+    }
+    
+    .completion-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(46, 204, 113, 0.3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 30;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+    }
+    
+    .completion-message {
+        background-color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    
+    .completion-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    /* 新增样式 */
+    .pose-comparison {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .comparison-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    
+    .comparison-content {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .reference-pose, .current-pose {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .pose-image {
+        width: 100%;
+        height: 120px;
+        object-fit: contain;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+    
+    .pose-label {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+    
+    .accuracy-meter {
+        margin-top: 15px;
+    }
+    
+    .accuracy-bar {
+        height: 8px;
+        background-color: #f1f1f1;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+    
+    .accuracy-fill {
+        height: 100%;
+        width: 0%;
+        background-color: #2ecc71;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    .accuracy-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+    
+    .correction-tips {
+        margin-top: 15px;
+        background-color: #f0f8ff;
+        padding: 12px;
+        border-radius: 5px;
+        border-left: 3px solid #3498db;
+    }
+    
+    .tip-item {
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #2c3e50;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .tip-item i {
+        color: #3498db;
+        margin-right: 8px;
+        margin-top: 3px;
+    }
+    
+    .success-tip {
+        color: #27ae60;
+    }
+    
+    .success-tip i {
+        color: #27ae60;
+    }
+    
+    .error-highlight {
+        background-color: rgba(231, 76, 60, 0.7);
+    }
+    
+    .correct-highlight {
+        background-color: rgba(46, 204, 113, 0.7);
+    }
+    
+    .motion-animation {
+        position: absolute;
+        z-index: 12;
+        pointer-events: none;
+    }
+    
+    .motion-arrow {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background-color: rgba(52, 152, 219, 0.8);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        z-index: 16;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 0.7;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(0.8);
+            opacity: 0.7;
+        }
+    }
+    
+    .feedback-toast {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+    }
+    
+    .feedback-toast.show {
+        opacity: 1;
+    }
+    
+    .progress-steps {
+        display: flex;
+        margin-top: 15px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    
+    .progress-step {
+        min-width: 50px;
+        height: 5px;
+        background-color: #e9ecef;
+        margin-right: 3px;
+        position: relative;
+    }
+    
+    .progress-step.completed {
+        background-color: #2ecc71;
+    }
+    
+    .progress-step.current {
+        background-color: #3498db;
+    }
+    
+    .progress-step:first-child {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+    }
+    
+    .progress-step:last-child {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        margin-right: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="session-container">
+    <div class="session-header">
+        <h1><i class="fas fa-dumbbell me-2"></i>康复训练会话</h1>
+        <p>按照指导完成当前训练动作，保持正确姿势获得最佳训练效果</p>
+    </div>
+    
+    <div class="session-body">
+        <div class="video-container">
+            <video id="video-element" autoplay playsinline></video>
+            <canvas id="video-overlay"></canvas>
+            <canvas id="video-pose-guide"></canvas>
+            
+            <div id="video-feedback">
+                准备中...请面向摄像头站立
+            </div>
+            
+            <div class="pose-instruction" id="pose-instruction">
+                准备开始训练
+            </div>
+            
+            <div class="feedback-toast" id="feedback-toast"></div>
+            
+            <div class="completion-overlay" id="completion-overlay">
+                <div class="completion-message">
+                    <h2><i class="fas fa-check-circle text-success me-2"></i>动作完成!</h2>
+                    <p>很好! 准备下一个动作</p>
+                    <button class="btn btn-primary" id="next-pose-btn">
+                        <i class="fas fa-arrow-right me-2"></i>继续
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-container">
+            <div class="exercise-title" id="exercise-title">加载中...</div>
+            <div class="exercise-description" id="exercise-description"></div>
+            
+            <div class="exercise-timer" id="exercise-timer">00:00</div>
+            
+            <div class="camera-guide">
+                <p><span class="match-indicator" id="match-indicator"></span> <span id="pose-status">请将姿势与屏幕中的指导轮廓对齐</span></p>
+            </div>
+            
+            <!-- 新增: 姿势对比区域 -->
+            <div class="pose-comparison">
+                <div class="comparison-title">姿势对比</div>
+                <div class="comparison-content">
+                    <div class="reference-pose">
+                        <img id="reference-pose-img" class="pose-image" src="{{ url_for('static', filename='images/reference_poses/default.png') }}" alt="参考姿势">
+                        <div class="pose-label">参考姿势</div>
+                    </div>
+                    <div class="current-pose">
+                        <img id="current-pose-img" class="pose-image" src="{{ url_for('static', filename='images/placeholder.png') }}" alt="当前姿势">
+                        <div class="pose-label">当前姿势</div>
+                    </div>
+                </div>
+                
+                <div class="accuracy-meter">
+                    <div class="accuracy-bar">
+                        <div class="accuracy-fill" id="accuracy-fill"></div>
+                    </div>
+                    <div class="accuracy-label">
+                        <span>不匹配</span>
+                        <span id="accuracy-value">0%</span>
+                        <span>完全匹配</span>
+                    </div>
+                </div>
+                
+                <div class="correction-tips" id="correction-tips">
+                    <div class="tip-item">
+                        <i class="fas fa-info-circle"></i>
+                        <span>开始训练后将显示姿势纠正提示</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exercise-instructions">
+                <h3>指导步骤:</h3>
+                <div id="instruction-steps">
+                    <!-- 指导步骤将通过JavaScript动态添加 -->
+                </div>
+                
+                <!-- 进度步骤指示器 -->
+                <div class="progress-steps" id="progress-steps"></div>
+            </div>
+            
+            <div class="progress-container">
+                <h3>完成进度: <span id="progress-text">0%</span></h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="exercise-stats">
+                <div class="stat-item">
+                    <i class="fas fa-chart-line stat-icon"></i>
+                    <div class="stat-value" id="stat-score">0</div>
+                    <div class="stat-label">分数</div>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-redo stat-icon"></i>
+                    <div class="stat-value" id="stat-reps">0/0</div>
+                    <div class="stat-label">重复次数</div>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-hourglass-half stat-icon"></i>
+                    <div class="stat-value" id="stat-time">0s</div>
+                    <div class="stat-label">保持时间</div>
+                </div>
+            </div>
+            
+            <div class="exercise-controls">
+                <button class="btn btn-primary" id="start-btn">
+                    <i class="fas fa-play me-2"></i>开始训练
+                </button>
+                <button class="btn btn-danger" id="skip-btn">
+                    <i class="fas fa-forward me-2"></i>跳过
+                </button>
+                <button class="btn btn-success" id="complete-btn" disabled>
+                    <i class="fas fa-check me-2"></i>完成
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 全局变量
+    let videoElement = null;
+    let videoStream = null;
+    let overlayCanvas = null;
+    let overlayContext = null;
+    let poseGuideCanvas = null;
+    let poseGuideContext = null;
+    let currentExercise = null;
+    let exercisePlan = null;
+    let exerciseIndex = 0;
+    let isTraining = false;
+    let isPoseMatched = false;
+    let holdStartTime = 0;
+    let requiredHoldTime = 3000; // 默认需要保持3秒
+    let currentScore = 0;
+    let totalScore = 0;
+    let repetitionCount = 0;
+    let requiredRepetitions = 0;
+    let sessionTimer = null;
+    let sessionTime = 0;
+    let lastPoseData = null;
+    let poseKeypoints = [];
+    let referenceKeypoints = [];
+    let lastFeedbackTime = 0;
+    
+    // DOM元素
+    const videoFeedback = document.getElementById('video-feedback');
+    const matchIndicator = document.getElementById('match-indicator');
+    const poseInstruction = document.getElementById('pose-instruction');
+    const exerciseTitle = document.getElementById('exercise-title');
+    const exerciseDescription = document.getElementById('exercise-description');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const poseStatus = document.getElementById('pose-status');
+    const completionOverlay = document.getElementById('completion-overlay');
+    const startBtn = document.getElementById('start-btn');
+    const skipBtn = document.getElementById('skip-btn');
+    const completeBtn = document.getElementById('complete-btn');
+    const nextPoseBtn = document.getElementById('next-pose-btn');
+    const instructionSteps = document.getElementById('instruction-steps');
+    const exerciseTimer = document.getElementById('exercise-timer');
+    const statScore = document.getElementById('stat-score');
+    const statReps = document.getElementById('stat-reps');
+    const statTime = document.getElementById('stat-time');
+    const accuracyFill = document.getElementById('accuracy-fill');
+    const accuracyValue = document.getElementById('accuracy-value');
+    const correctionTips = document.getElementById('correction-tips');
+    const feedbackToast = document.getElementById('feedback-toast');
+    const referencePoseImg = document.getElementById('reference-pose-img');
+    const currentPoseImg = document.getElementById('current-pose-img');
+    const progressSteps = document.getElementById('progress-steps');
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化画布
+        videoElement = document.getElementById('video-element');
+        overlayCanvas = document.getElementById('video-overlay');
+        poseGuideCanvas = document.getElementById('video-pose-guide');
+        
+        // 获取画布上下文
+        overlayContext = overlayCanvas.getContext('2d');
+        poseGuideContext = poseGuideCanvas.getContext('2d');
+        
+        // 调整画布大小以匹配视频
+        function resizeCanvases() {
+            if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                const width = videoElement.clientWidth;
+                const height = videoElement.clientHeight;
+                
+                overlayCanvas.width = width;
+                overlayCanvas.height = height;
+                poseGuideCanvas.width = width;
+                poseGuideCanvas.height = height;
+            }
+        }
+        
+        // 当视频加载完成后调整画布大小
+        videoElement.addEventListener('loadedmetadata', resizeCanvases);
+        window.addEventListener('resize', resizeCanvases);
+        
+        // 获取会话ID和计划ID
+        const sessionId = window.location.pathname.split('/').pop();
+        const urlParams = new URLSearchParams(window.location.search);
+        const planId = urlParams.get('plan_id') || 'default_plan';
+        
+        // 加载康复会话数据
+        loadSessionData(sessionId);
+        
+        // 按钮事件处理
+        startBtn.addEventListener('click', startTraining);
+        skipBtn.addEventListener('click', skipExercise);
+        completeBtn.addEventListener('click', completeExercise);
+        nextPoseBtn.addEventListener('click', function() {
+            completionOverlay.classList.remove('show');
+            goToNextExercise();
+        });
+    });
+    
+    // 加载会话数据
+    function loadSessionData(sessionId) {
+        fetch(`/api/v1/rehab/session/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    exercisePlan = data.data;
+                    
+                    // 显示会话信息
+                    displaySessionInfo();
+                    
+                    // 加载第一个运动
+                loadExercise(0);
+                } else {
+                    showError('无法加载康复会话数据: ' + data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('请求康复会话数据失败');
+            });
+    }
+    
+    // 显示会话信息
+    function displaySessionInfo() {
+        // 进度步骤显示
+        if (exercisePlan && exercisePlan.exercises) {
+            const totalSteps = exercisePlan.exercises.length;
+            progressSteps.innerHTML = '';
+            
+            for (let i = 0; i < totalSteps; i++) {
+                const step = document.createElement('div');
+                step.className = `progress-step${i === 0 ? ' current' : ''}`;
+                progressSteps.appendChild(step);
+            }
+        }
+    }
+    
+    // 加载特定运动
+    function loadExercise(index) {
+        if (!exercisePlan || !exercisePlan.exercises || index >= exercisePlan.exercises.length) {
+            showError('无效的训练项目索引');
+            return;
+        }
+        
+        exerciseIndex = index;
+        currentExercise = exercisePlan.exercises[index];
+        
+        // 更新进度步骤
+        const steps = progressSteps.querySelectorAll('.progress-step');
+        if (steps && steps.length > 0) {
+            for (let i = 0; i < steps.length; i++) {
+                steps[i].className = 'progress-step';
+                if (i < index) {
+                    steps[i].classList.add('completed');
+                } else if (i === index) {
+                    steps[i].classList.add('current');
+                }
+            }
+        }
+        
+        // 显示运动详情
+        exerciseTitle.textContent = currentExercise.name;
+        exerciseDescription.textContent = currentExercise.description;
+        
+        // 初始化统计数据
+        currentScore = 0;
+        totalScore = 0;
+        repetitionCount = 0;
+        requiredRepetitions = currentExercise.repetitions;
+        sessionTime = 0;
+        
+        // 更新统计显示
+        statScore.textContent = '0';
+        statReps.textContent = `0/${requiredRepetitions}`;
+        statTime.textContent = '0s';
+        
+        // 显示步骤说明
+        displayInstructions();
+        
+        // 加载参考姿势图像
+        loadReferencePose();
+        
+        // 重置进度条
+        updateProgress(0);
+    }
+    
+    // 显示步骤说明
+    function displayInstructions() {
+        instructionSteps.innerHTML = '';
+        
+        if (!currentExercise || !currentExercise.instructions) {
+            return;
+        }
+        
+        currentExercise.instructions.forEach((instruction, index) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'instruction-step';
+            stepDiv.dataset.step = index + 1;
+            
+            stepDiv.innerHTML = `
+                <span class="step-number">${index + 1}</span>
+                <span>${instruction}</span>
+            `;
+            
+            instructionSteps.appendChild(stepDiv);
+        });
+    }
+    
+    // 加载参考姿势图像
+    function loadReferencePose() {
+        if (currentExercise && currentExercise.reference_pose) {
+            referencePoseImg.src = `/api/rehab/reference_pose/${currentExercise.type}`;
+            referencePoseImg.onerror = function() {
+                referencePoseImg.src = "{{ url_for('static', filename='images/reference_poses/default.png') }}";
+            };
+        } else {
+            referencePoseImg.src = "{{ url_for('static', filename='images/reference_poses/default.png') }}";
+        }
+    }
+    
+    // 开始训练
+    function startTraining() {
+        if (isTraining) return;
+        
+        // 请求摄像头权限
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                videoStream = stream;
+                videoElement.srcObject = stream;
+                
+                // 启动训练
+        isTraining = true;
+        startBtn.disabled = true;
+                startBtn.textContent = '训练中...';
+                
+                // 启动会话计时器
+                startSessionTimer();
+                
+                // 开始姿势检测
+                startPoseDetection();
+                
+                // 显示第一个步骤为活动
+                const firstStep = instructionSteps.querySelector('.instruction-step');
+                if (firstStep) {
+                    firstStep.classList.add('active');
+                }
+                
+                // 更新UI状态
+                poseInstruction.textContent = '请摆出正确姿势';
+                videoFeedback.textContent = '检测姿势中...';
+            })
+            .catch(error => {
+                console.error('Error accessing camera:', error);
+                showError('无法访问摄像头，请授予摄像头权限');
+            });
+    }
+    
+    // 开始会话计时器
+    function startSessionTimer() {
+        sessionTimer = setInterval(() => {
+            sessionTime++;
+            updateTimer();
+        }, 1000);
+    }
+    
+    // 更新计时器显示
+    function updateTimer() {
+        const minutes = Math.floor(sessionTime / 60);
+        const seconds = sessionTime % 60;
+        exerciseTimer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    
+    // 开始姿势检测
+    function startPoseDetection() {
+        // 定期发送视频帧进行姿势检测
+        const detectionInterval = setInterval(() => {
+            if (!isTraining) {
+                clearInterval(detectionInterval);
+                return;
+            }
+            
+            // 绘制当前视频帧到隐藏画布
+            const hiddenCanvas = document.createElement('canvas');
+            hiddenCanvas.width = videoElement.videoWidth;
+            hiddenCanvas.height = videoElement.videoHeight;
+            const ctx = hiddenCanvas.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+            
+            // 将画布数据转换为blob并发送
+            hiddenCanvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('frame', blob);
+                formData.append('exercise_type', currentExercise.type);
+                
+                fetch('/api/rehab/detect_pose', {
+            method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        // 处理姿势检测结果
+                        handlePoseDetection(data.data);
+                    } else {
+                        console.error('Pose detection error:', data.msg);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in pose detection:', error);
+                });
+            }, 'image/jpeg', 0.8);
+            
+        }, 200); // 每200ms检测一次
+    }
+    
+    // 处理姿势检测结果
+    function handlePoseDetection(poseData) {
+        if (!poseData || !isTraining) return;
+        
+        // 保存关键点数据
+        poseKeypoints = poseData.keypoints;
+        
+        // 如果有参考关键点，保存它
+        if (poseData.reference_keypoints) {
+            referenceKeypoints = poseData.reference_keypoints;
+        }
+        
+        // 更新当前姿势图像
+        if (poseData.pose_image_base64) {
+            currentPoseImg.src = `data:image/jpeg;base64,${poseData.pose_image_base64}`;
+        }
+        
+        // 绘制骨架
+        drawSkeleton(poseKeypoints);
+        
+        // 计算姿势匹配得分
+        const matchScore = poseData.match_score || 0;
+        const threshold = 70; // 匹配阈值
+        isPoseMatched = matchScore >= threshold;
+        
+        // 更新UI
+        updatePoseMatchUI(matchScore);
+        
+        // 更新姿势纠正提示
+        updateCorrectionTips(poseData.feedback);
+        
+        // 处理姿势匹配逻辑
+        processPoseMatch(matchScore);
+        
+        // 保存这次的姿势数据
+        lastPoseData = poseData;
+    }
+    
+    // 绘制骨架
+    function drawSkeleton(keypoints) {
+        if (!overlayContext || !keypoints || keypoints.length === 0) return;
+        
+        // 清除画布
+        overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        
+        // 缩放因子
+        const scaleX = overlayCanvas.width / 640;
+        const scaleY = overlayCanvas.height / 480;
+        
+        // 绘制关节点
+        keypoints.forEach(point => {
+            if (point.confidence > 0.5) {
+                overlayContext.beginPath();
+                overlayContext.arc(point.x * scaleX, point.y * scaleY, 5, 0, 2 * Math.PI);
+                overlayContext.fillStyle = 'rgba(52, 152, 219, 0.7)';
+                overlayContext.fill();
+            }
+        });
+        
+        // 预定义的连接关系
+        const connections = [
+            [5, 7], [7, 9], // 左臂
+            [6, 8], [8, 10], // 右臂
+            [5, 6], // 肩膀
+            [5, 11], [6, 12], // 躯干
+            [11, 13], [13, 15], // 左腿
+            [12, 14], [14, 16] // 右腿
+        ];
+        
+        // 绘制骨骼连接
+        connections.forEach(([i, j]) => {
+            const p1 = keypoints[i-1];
+            const p2 = keypoints[j-1];
+            
+            if (p1 && p2 && p1.confidence > 0.5 && p2.confidence > 0.5) {
+                overlayContext.beginPath();
+                overlayContext.moveTo(p1.x * scaleX, p1.y * scaleY);
+                overlayContext.lineTo(p2.x * scaleX, p2.y * scaleY);
+                overlayContext.lineWidth = 3;
+                overlayContext.strokeStyle = 'rgba(52, 152, 219, 0.7)';
+                overlayContext.stroke();
+            }
+        });
+        
+        // 如果有参考关键点，也画出来作为对比
+        if (referenceKeypoints && referenceKeypoints.length > 0) {
+            referenceKeypoints.forEach(point => {
+                if (point.confidence > 0.5) {
+                    overlayContext.beginPath();
+                    overlayContext.arc(point.x * scaleX, point.y * scaleY, 5, 0, 2 * Math.PI);
+                    overlayContext.fillStyle = 'rgba(46, 204, 113, 0.5)';
+                    overlayContext.fill();
+                }
+            });
+            
+            // 绘制参考骨骼连接
+            connections.forEach(([i, j]) => {
+                const p1 = referenceKeypoints[i-1];
+                const p2 = referenceKeypoints[j-1];
+                
+                if (p1 && p2 && p1.confidence > 0.5 && p2.confidence > 0.5) {
+                    overlayContext.beginPath();
+                    overlayContext.moveTo(p1.x * scaleX, p1.y * scaleY);
+                    overlayContext.lineTo(p2.x * scaleX, p2.y * scaleY);
+                    overlayContext.lineWidth = 2;
+                    overlayContext.strokeStyle = 'rgba(46, 204, 113, 0.5)';
+                    overlayContext.stroke();
+                }
+            });
+        }
+    }
+    
+    // 更新姿势匹配UI
+    function updatePoseMatchUI(matchScore) {
+        // 更新匹配指示器
+        if (isPoseMatched) {
+            matchIndicator.classList.add('matched');
+            poseStatus.textContent = '姿势正确！请保持';
+        } else {
+            matchIndicator.classList.remove('matched');
+            poseStatus.textContent = '请调整姿势以匹配指导';
+        }
+        
+        // 更新准确度条
+        const accuracyPercentage = Math.min(100, Math.max(0, matchScore));
+        accuracyFill.style.width = `${accuracyPercentage}%`;
+        accuracyValue.textContent = `${Math.round(accuracyPercentage)}%`;
+        
+        // 更新匹配颜色
+        if (accuracyPercentage < 50) {
+            accuracyFill.style.backgroundColor = '#e74c3c';
+        } else if (accuracyPercentage < 70) {
+            accuracyFill.style.backgroundColor = '#f39c12';
+        } else {
+            accuracyFill.style.backgroundColor = '#2ecc71';
+        }
+    }
+    
+    // 更新纠正提示
+    function updateCorrectionTips(feedback) {
+        if (!feedback || !Array.isArray(feedback)) {
+            return;
+        }
+        
+        correctionTips.innerHTML = '';
+        
+        if (feedback.length === 0) {
+            // 如果没有反馈，表示姿势正确
+            const tipItem = document.createElement('div');
+            tipItem.className = 'tip-item success-tip';
+            tipItem.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>姿势正确，请继续保持</span>
+            `;
+            correctionTips.appendChild(tipItem);
+            return;
+        }
+        
+        // 添加反馈提示
+        feedback.forEach(tip => {
+            const tipItem = document.createElement('div');
+            tipItem.className = 'tip-item';
+            tipItem.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <span>${tip}</span>
+            `;
+            correctionTips.appendChild(tipItem);
+        });
+        
+        // 如果有新的反馈，并且时间间隔足够（避免频繁提示）
+        const now = Date.now();
+        if (now - lastFeedbackTime > 3000 && feedback.length > 0) {
+            showFeedbackToast(feedback[0]);
+            lastFeedbackTime = now;
+        }
+    }
+    
+    // 显示反馈toast
+    function showFeedbackToast(message) {
+        feedbackToast.textContent = message;
+        feedbackToast.classList.add('show');
+        
+        setTimeout(() => {
+            feedbackToast.classList.remove('show');
+        }, 3000);
+    }
+    
+    // 处理姿势匹配逻辑
+    function processPoseMatch(matchScore) {
+        // 更新分数
+        currentScore = Math.round(matchScore);
+        statScore.textContent = currentScore;
+        
+        if (isPoseMatched) {
+            // 如果姿势匹配，检查是否是新的匹配开始
+            if (holdStartTime === 0) {
+                holdStartTime = Date.now();
+                videoFeedback.textContent = '姿势正确！请保持...';
+            }
+            
+            // 计算已保持时间
+            const heldTime = Date.now() - holdStartTime;
+            const heldSeconds = Math.floor(heldTime / 1000);
+            statTime.textContent = `${heldSeconds}s`;
+            
+            // 更新保持进度
+            const holdPercentage = Math.min(100, (heldTime / requiredHoldTime) * 100);
+            
+            // 检查是否达到保持时间要求
+            if (heldTime >= requiredHoldTime) {
+                // 完成一次重复
+                repetitionCount++;
+                totalScore += currentScore;
+                
+                // 更新统计
+                statReps.textContent = `${repetitionCount}/${requiredRepetitions}`;
+                
+                // 重置保持计时
+                holdStartTime = 0;
+                
+                // 显示成功消息
+                videoFeedback.textContent = '很好！继续下一个重复';
+                showFeedbackToast('重复完成！+' + currentScore + '分');
+                
+                // 检查是否完成所有重复
+                if (repetitionCount >= requiredRepetitions) {
+                    completeExercise();
+                } else {
+                    // 突出显示下一个活动步骤
+                    highlightCurrentStep();
+                }
+                
+                // 更新进度
+                updateProgress((repetitionCount / requiredRepetitions) * 100);
+            }
+        } else {
+            // 如果姿势不匹配，重置保持计时
+            if (holdStartTime !== 0) {
+                holdStartTime = 0;
+                videoFeedback.textContent = '姿势不正确，请调整';
+            }
+        }
+    }
+    
+    // 高亮当前活动步骤
+    function highlightCurrentStep() {
+        // 移除所有活动状态
+        const steps = instructionSteps.querySelectorAll('.instruction-step');
+        steps.forEach(step => {
+            step.classList.remove('active');
+            step.classList.remove('completed');
+        });
+        
+        // 标记已完成的步骤
+        for (let i = 0; i < repetitionCount; i++) {
+            if (i < steps.length) {
+                steps[i].classList.add('completed');
+            }
+        }
+        
+        // 标记当前步骤为活动
+        if (repetitionCount < steps.length) {
+            steps[repetitionCount].classList.add('active');
+        }
+    }
+    
+    // 更新进度条
+    function updateProgress(percentage) {
+        progressFill.style.width = `${percentage}%`;
+        progressText.textContent = `${Math.round(percentage)}%`;
+    }
+    
+    // 完成当前运动
+    function completeExercise() {
+        // 显示完成界面
+        completionOverlay.classList.add('show');
+        
+        // 发送完成数据到服务器
+        const sessionId = window.location.pathname.split('/').pop();
+        
+        fetch('/api/rehab/session/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                exercise_index: exerciseIndex,
+                score: totalScore,
+                repetitions_completed: repetitionCount,
+                time_taken: sessionTime
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Exercise completion recorded:', data);
+        })
+        .catch(error => {
+            console.error('Error recording completion:', error);
+        });
+    }
+    
+    // 跳过当前运动
+    function skipExercise() {
+        if (!confirm('确定要跳过当前训练吗？这将不会记录任何得分。')) {
+            return;
+        }
+        
+        // 发送跳过请求
+        const sessionId = window.location.pathname.split('/').pop();
+        
+        fetch('/api/rehab/session/skip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                exercise_index: exerciseIndex
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+            if (data.code === 200) {
+                goToNextExercise();
+            } else {
+                console.error('Skip error:', data.msg);
+                }
+            })
+            .catch(error => {
+            console.error('Error skipping exercise:', error);
+        });
+    }
+    
+    // 进入下一个运动
+    function goToNextExercise() {
+        // 停止当前视频流
+        stopVideoStream();
+        
+        // 重置状态
+        resetTrainingState();
+        
+        // 检查是否还有下一个运动
+        if (exerciseIndex + 1 < exercisePlan.exercises.length) {
+            // 加载下一个运动
+            loadExercise(exerciseIndex + 1);
+        } else {
+            // 完成所有训练，跳转到完成页面
+            const sessionId = window.location.pathname.split('/').pop();
+            window.location.href = `/rehab/session/${sessionId}/complete`;
+        }
+    }
+    
+    // 停止视频流
+    function stopVideoStream() {
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+        videoElement.srcObject = null;
+    }
+    
+    // 重置训练状态
+    function resetTrainingState() {
+        isTraining = false;
+        isPoseMatched = false;
+        holdStartTime = 0;
+        currentScore = 0;
+        totalScore = 0;
+        repetitionCount = 0;
+        
+        // 停止计时器
+        if (sessionTimer) {
+            clearInterval(sessionTimer);
+            sessionTimer = null;
+        }
+        
+        // 重置UI
+        startBtn.disabled = false;
+        startBtn.textContent = '开始训练';
+        videoFeedback.textContent = '准备中...请面向摄像头站立';
+        poseInstruction.textContent = '准备开始训练';
+        matchIndicator.classList.remove('matched');
+        
+        // 清除画布
+        if (overlayContext) {
+            overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        }
+        if (poseGuideContext) {
+            poseGuideContext.clearRect(0, 0, poseGuideCanvas.width, poseGuideCanvas.height);
+        }
+    }
+    
+    // 显示错误信息
+    function showError(message) {
+        alert(message);
+    }
+</script>
+{% endblock %} 

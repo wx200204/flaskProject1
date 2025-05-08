@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block title %}体态分析{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">体态分析</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p>请上传四个视角的照片进行体态分析，建议：</p>
+                        <ul>
+                            <li>保持站姿自然，双脚略分开与肩同宽</li>
+                            <li>穿着紧身衣物以便系统更好地识别体态</li>
+                            <li>确保照片包括全身，从头顶到脚底</li>
+                        </ul>
+                    </div>
+                    
+                    <form id="posture-form" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-header">前视图</div>
+                                    <div class="card-body text-center">
+                                        <div class="preview-container mb-2">
+                                            <img id="front-preview" class="img-fluid preview-image" src="/static/img/front-guide.png">
+                                        </div>
+                                        <input type="file" class="form-control" id="front-upload" name="front" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-header">背视图</div>
+                                    <div class="card-body text-center">
+                                        <div class="preview-container mb-2">
+                                            <img id="back-preview" class="img-fluid preview-image" src="/static/img/back-guide.png">
+                                        </div>
+                                        <input type="file" class="form-control" id="back-upload" name="back" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-header">左侧视图</div>
+                                    <div class="card-body text-center">
+                                        <div class="preview-container mb-2">
+                                            <img id="left-preview" class="img-fluid preview-image" src="/static/img/left-guide.png">
+                                        </div>
+                                        <input type="file" class="form-control" id="left-upload" name="left" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-header">右侧视图</div>
+                                    <div class="card-body text-center">
+                                        <div class="preview-container mb-2">
+                                            <img id="right-preview" class="img-fluid preview-image" src="/static/img/right-guide.png">
+                                        </div>
+                                        <input type="file" class="form-control" id="right-upload" name="right" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-lg btn-primary" id="analyze-btn">开始分析</button>
+                        </div>
+                    </form>
+                    
+                    <div class="result-container mt-4" style="display: none;">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="mb-0">体态分析结果</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h4 class="text-center">发现的体态问题</h4>
+                                        <ul id="posture-issues" class="list-group">
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h4 class="text-center">体态可视化</h4>
+                                        <div class="row" id="visualization-container">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <h4>体态改善建议</h4>
+                                        <div id="recommendations"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 预览上传的图片
+    ['front', 'back', 'left', 'right'].forEach(view => {
+        const input = document.getElementById(view + '-upload');
+        const preview = document.getElementById(view + '-preview');
+        
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+    
+    // 处理表单提交
+    document.getElementById('posture-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        let hasFiles = false;
+        
+        ['front', 'back', 'left', 'right'].forEach(view => {
+            const input = document.getElementById(view + '-upload');
+            if (input.files && input.files[0]) {
+                formData.append(view, input.files[0]);
+                hasFiles = true;
+            }
+        });
+        
+        if (!hasFiles) {
+            alert('请至少上传一张照片');
+            return;
+        }
+        
+        // 显示加载状态
+        const analyzeBtn = document.getElementById('analyze-btn');
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 分析中...';
+        analyzeBtn.disabled = true;
+        
+        // 发送分析请求
+        fetch('/api/v1/analyze-posture', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 恢复按钮状态
+            analyzeBtn.innerHTML = '开始分析';
+            analyzeBtn.disabled = false;
+            
+            if (data.status === 'success') {
+                displayResults(data.result);
+            } else {
+                alert('分析失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            analyzeBtn.innerHTML = '开始分析';
+            analyzeBtn.disabled = false;
+            alert('请求失败，请重试');
+        });
+    });
+    
+    // 显示分析结果
+    function displayResults(result) {
+        // 显示结果容器
+        document.querySelector('.result-container').style.display = 'block';
+        
+        // 显示体态问题
+        const issuesList = document.getElementById('posture-issues');
+        issuesList.innerHTML = '';
+        
+        if (result.posture_issues && result.posture_issues.length > 0) {
+            result.posture_issues.forEach(issue => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = issue;
+                issuesList.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.className = 'list-group-item text-success';
+            li.textContent = '未发现明显体态问题';
+            issuesList.appendChild(li);
+        }
+        
+        // 显示可视化结果
+        const visContainer = document.getElementById('visualization-container');
+        visContainer.innerHTML = '';
+        
+        for (const [view, imgBase64] of Object.entries(result.visualization || {})) {
+            if (imgBase64) {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-3';
+                
+                const viewNames = {
+                    front: '前视图',
+                    back: '后视图',
+                    left: '左侧视图',
+                    right: '右侧视图'
+                };
+                
+                col.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">${viewNames[view] || view}</div>
+                        <div class="card-body text-center">
+                            <img src="data:image/jpeg;base64,${imgBase64}" class="img-fluid">
+                        </div>
+                    </div>
+                `;
+                
+                visContainer.appendChild(col);
+            }
+        }
+        
+        // 显示建议
+        const recsContainer = document.getElementById('recommendations');
+        recsContainer.innerHTML = '';
+        
+        if (result.recommendations && result.recommendations.length > 0) {
+            const ul = document.createElement('ul');
+            result.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                ul.appendChild(li);
+            });
+            recsContainer.appendChild(ul);
+        } else {
+            recsContainer.textContent = '无特定建议';
+        }
+        
+        // 滚动到结果区域
+        document.querySelector('.result-container').scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %} 
